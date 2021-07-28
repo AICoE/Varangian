@@ -17,9 +17,10 @@
 
 """Library functions for Varangian git application."""
 
-from typing import Dict, Optional
+from typing import Dict, Optional, TextIO
 import re
 import csv
+import logging
 
 from ogr.services.base import BaseGitService, BaseGitProject
 from ogr.abstract import IssueStatus
@@ -29,6 +30,13 @@ from ogr.services.pagure import PagureService
 
 from config import _Config
 from templates import VARANGIAN_BUG_BODY
+
+
+def _get_row_from_csv(csv_file: TextIO, index: int, **csv_reader_args):
+    reader = csv.reader(csv_file, **csv_reader_args)
+    for _ in range(index):
+        next(reader)
+    return next(reader)
 
 
 def _ogr_service_from_dict(service_dict: Dict[str, str]) -> BaseGitService:
@@ -62,24 +70,37 @@ def _create_issue(
     trace_id: str,
     trace_contents: str,
     confidence: float,
-    trace_length: Optional[int] = None,
-) -> None:
+    rank: int,
+    trace_preview_length: int = 5,
+) -> bool:
     infer_info = _parse_trace(trace_contents)
-    if trace_length is not None:
-        "\n".join(trace_contents.splitlines(keepends=False)[:trace_length])
+    title = f"priority-{rank} {infer_info['bug_type']}-{infer_info['location']}"
+    full_trace = trace_contents.splitlines(keepends=False)
     body = VARANGIAN_BUG_BODY.format(
+        trace_id=trace_id,
         bug_type=infer_info["bug_type"],
         location=infer_info["location"],
         description=infer_info["description"],
         confidence=confidence,
-        bug_trace=trace_contents,
+        rank=rank,
+        trace_preview="\n".join(full_trace[:trace_preview_length]),
+        full_trace="\n".join(full_trace[trace_preview_length:]),
     )
-    title = f"{infer_info['bug_type']}-{trace_id}"
-    for issue in ogr_project.get_issue_list(status=IssueStatus.all):
-        if issue.title == title:
-            break
+    to_find = re.compile(rf"## Description:\nid: {trace_id}\n")
+    issues = ogr_project.get_issue_list(status=IssueStatus.all)
+    for issue in issues:
+        if to_find.search(issue.description):
+            issue.title = title
+            issue.description = body
+            logging.debug("Editing already existing issue.")
+            return False
     else:
-        ogr_project.create_issue(title=title, body=body, labels=["bug"])
+        try:
+            ogr_project.create_issue(title=title, body=body, labels=["bug"])
+            return True
+        except Exception as exc:
+            logging.exception(f"Failed to create issue. With exception: {str(exc)}")
+            return False
 
 
 def run(
@@ -89,7 +110,7 @@ def run(
     namespace: str,
     confidence_threshold: float = 0.6,
     max_count: int = 7,
-    trace_length: Optional[int] = None,
+    trace_preview_length: int = 5,
     service_dict: Optional[Dict[str, str]] = None,
 ) -> None:
     """Take output from Varangian application and apply it to issues on git forges."""
@@ -100,7 +121,8 @@ def run(
 
     project = service.get_project(namespace=namespace, repo=repo)
 
-    to_create = []
+    acceptable = []
+    trace_ids = []
 
     with open(predictions_file, "r") as f:
         f.readline()  # skip line with column headers
@@ -109,28 +131,44 @@ def run(
             if line == "":
                 break
             line = line.strip()
-            contents = line.split(",")
-            if float(contents[2]) >= confidence_threshold:
-                to_create.append((contents[1], float(contents[2])))
-
-    ids = [i[0] for i in to_create]
-    confidences = [i[1] for i in to_create]
-
-    project.create_issue(title="foo", body="bar")
+            rank, trace_id, confidence, _ = line.split(",")
+            if float(confidence) >= confidence_threshold:
+                acceptable.append(
+                    {
+                        "rank": int(rank),
+                        "trace_id": trace_id,
+                        "confidence": float(confidence),
+                        "trace_index": None,
+                    }
+                )
+                trace_ids.append(trace_id)
 
     with open(trace_file, "r", newline="") as f:
         reader = csv.reader(f, delimiter=",", doublequote=True)
+
+        i = 0
         for row in reader:
             try:
-                index = ids.index(row[0])
-                _create_issue(
-                    ogr_project=project,
-                    trace_id=ids[index],
-                    trace_contents=row[1],
-                    confidence=confidences[index],
-                )
-
-                ids.pop(index)
-                confidences.pop(index)
+                index = trace_ids.index(row[0])
+                acceptable[index]["trace_index"] = i
             except ValueError:
-                pass
+                logging.warning("No prediction entry associated with this trace.")
+            finally:
+                i = i + 1
+
+        count = 0
+
+        while count <= max_count and acceptable != []:
+            to_create = acceptable.pop(0)
+            if to_create["trace_index"] is not None:
+                f.seek(0)
+                count = count + _create_issue(
+                    ogr_project=project,
+                    trace_id=str(to_create["trace_id"]),
+                    trace_contents=_get_row_from_csv(
+                        f, int(to_create["trace_index"]), delimiter=",", doublequote=True  # type: ignore
+                    )[1],
+                    confidence=float(to_create["confidence"]),  # type: ignore
+                    rank=int(to_create["rank"]),  # type: ignore
+                    trace_preview_length=trace_preview_length,
+                )
