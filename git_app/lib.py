@@ -24,9 +24,9 @@ import logging
 
 from ogr.services.base import BaseGitService, BaseGitProject
 from ogr.abstract import IssueStatus
-from ogr.services.github import GithubService
-from ogr.services.gitlab import GitlabService
-from ogr.services.pagure import PagureService
+from ogr.services.github import GithubService, GithubProject
+from ogr.services.gitlab import GitlabService, GitlabProject
+from ogr.services.pagure import PagureService, PagureProject
 
 from config import _Config
 from templates import VARANGIAN_BUG_BODY
@@ -74,26 +74,39 @@ def _create_issue(
     trace_preview_length: int = 5,
 ) -> bool:
     infer_info = _parse_trace(trace_contents)
-    title = f"priority-{rank} {infer_info['bug_type']}-{infer_info['location']}"
+    bug_type_link = f"https://fbinfer.com/docs/all-issue-types#{infer_info['bug_type'].lower().replace(' ', '_')}"
+    title = f"Rank-{rank} {infer_info['bug_type']}-{infer_info['location']}"
     full_trace = trace_contents.splitlines(keepends=False)
+    location = infer_info["location"].replace(":", "#L")
+    if isinstance(ogr_project, GithubProject):
+        link_location = f"../blob/{ogr_project.default_branch}/{location}"
+    elif isinstance(ogr_project, GitlabProject):
+        link_location = location
+    elif isinstance(ogr_project, PagureProject):
+        link_location = f"blob/{ogr_project.default_branch}/f/{location}"
     body = VARANGIAN_BUG_BODY.format(
         trace_id=trace_id,
         bug_type=infer_info["bug_type"],
-        location=infer_info["location"],
+        bug_type_link=bug_type_link,
+        location=location,
+        link_location=link_location,
         description=infer_info["description"],
         confidence=confidence,
         rank=rank,
         trace_preview="\n".join(full_trace[:trace_preview_length]),
         full_trace="\n".join(full_trace[trace_preview_length:]),
     )
-    to_find = re.compile(rf"## Description:\nid: {trace_id}\n")
+    to_find = re.compile(rf"<!-- {trace_id}_{infer_info['location'].split(':')[0]} -->")
     issues = ogr_project.get_issue_list(status=IssueStatus.all)
     for issue in issues:
         if to_find.search(issue.description):
-            issue.title = title
-            issue.description = body
-            logging.debug("Editing already existing issue.")
-            return False
+            try:
+                issue.title = title
+                issue.description = body
+                logging.debug("Editing already existing issue.")
+                return False
+            except Exception:
+                logging.error("Failed to update issue.")
     else:
         try:
             ogr_project.create_issue(title=title, body=body, labels=["bug"])

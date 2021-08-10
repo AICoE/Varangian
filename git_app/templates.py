@@ -17,19 +17,29 @@
 
 """Templates for issues and PRs opened by Varangian git application."""
 
+# the first line of the body is to ensure we don't duplicate issuess
 VARANGIAN_BUG_BODY = """
-# Automated issue created by Varangian
+<!-- {trace_id} -->
 ## Description:
-id: {trace_id}
-Infer bug type: {bug_type}
-Location: {location}
-Description: {description}
-Rank: {rank}
-Confidence: {confidence}
+Infer bug type: [{bug_type}]({bug_type_link})\n Location: [{location}]({link_location})\n Description: {description}\n
+Rank: {rank}\n Confidence: {confidence}\n
 ## Bug trace:
+```
 {trace_preview}
-<details>
-  <summary><b>Show more</b></summary>
-  {full_trace}
+```
+<details><summary><b>Show more</b></summary>
+<p>
+
+```
+{full_trace}
+```
+
+</p>
 </details>
+
+## Feedback
+
+Please open issues [here](https://github.com/AICoE/Varangian/issues/new/choose) if you have any feedback you would like
+to give us.
+
 """
