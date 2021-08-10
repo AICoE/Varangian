@@ -18,12 +18,18 @@
 """Templates for issues and PRs opened by Varangian git application."""
 
 VARANGIAN_BUG_BODY = """
-**Automated issue created by Varangian**
+# Automated issue created by Varangian
 ## Description:
+id: {trace_id}
 Infer bug type: {bug_type}
 Location: {location}
 Description: {description}
+Rank: {rank}
 Confidence: {confidence}
 ## Bug trace:
-{bug_trace}
+{trace_preview}
+<details>
+  <summary><b>Show more</b></summary>
+  {full_trace}
+</details>
 """

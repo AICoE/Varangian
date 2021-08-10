@@ -71,8 +71,8 @@ def _json_callback(ctx, param, value):
 )
 @click.option(
     "-l",
-    "--trace-length",
-    envvar="VARANGIAN_TRACE_LENGTH",
+    "--trace-preview-length",
+    envvar="VARANGIAN_TRACE_PREVIEW_LENGTH",
     type=click.IntRange(0),
     default=None,
     help="Number of lines of the bug trace to include in the issue body, None indicates inclusion of the full trace.",
@@ -85,7 +85,9 @@ def _json_callback(ctx, param, value):
     callback=_json_callback,
     help="Json dictionary containing service related information for authentication.",
 )
-def cli(namespace, repo, predictions_file, trace_file, confidence_threshold, max_count, trace_length, service_dict):
+def cli(
+    namespace, repo, predictions_file, trace_file, confidence_threshold, max_count, trace_preview_length, service_dict
+):
     """Run base command for varangian git forge application."""
     lib.run(
         repo=repo,
@@ -94,7 +96,7 @@ def cli(namespace, repo, predictions_file, trace_file, confidence_threshold, max
         namespace=namespace,
         confidence_threshold=confidence_threshold,
         max_count=max_count,
-        trace_length=trace_length,
+        trace_preview_length=trace_preview_length,
         service_dict=service_dict,
     )
 
