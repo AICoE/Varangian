@@ -3,6 +3,11 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi-org-simple"
+
 [packages]
 click = "*"
 ogr = "*"
@@ -11,4 +16,9 @@ ogr = "*"
 mypy = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.8"
+
+[thoth]
+disable_index_adjustment = false
+
+[thoth.allow_prereleases]
