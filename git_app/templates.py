@@ -19,15 +19,21 @@
 
 # the first line of the body is to ensure we don't duplicate issuess
 VARANGIAN_BUG_BODY = """
-<!-- {trace_id} -->
+<!-- {bug_id} -->
+## Varangian Defect Detector Bot:
+Varangian is a bot which uses Augmented Static Analysis to automatically create issues for bugs in the latest commit.
+More information: https://github.com/AICoE/Varangian
 ## Description:
-Infer bug type: [{bug_type}]({bug_type_link})\n Location: [{location}]({link_location})\n Description: {description}\n
-Rank: {rank}\n Confidence: {confidence}\n
+Infer bug type: [{bug_type}]({bug_type_link})\n
+Location: [{location}]({bug_link})\n
+Description: {description}\n
+[Rank](https://github.com/AICoE/Varangian/blob/main/docs/metrics/README.md#varangian-issue): {rank}\n
+[Likelihood](https://github.com/AICoE/Varangian/blob/main/docs/metrics/README.md#varangian-issue): {confidence}\n
 ## Bug trace:
 ```
 {trace_preview}
 ```
-<details><summary><b>Show more</b></summary>
+<details><summary><b>Show full trace</b></summary>
 <p>
 
 ```
