@@ -47,19 +47,11 @@ def _json_callback(ctx, param, value):
 )
 @click.option(
     "-t",
-    "--trace-file",
-    envvar="VARANGIAN_TRACE_FILE",
+    "--trace-directory",
+    envvar="VARANGIAN_TRACE_DIRECTORY",
     type=click.Path(exists=True),
     required=True,
     help="Location of bug traces which can be indexed by the trace id.",
-)
-@click.option(
-    "-c",
-    "--confidence-threshold",
-    envvar="VARANGIAN_CONFIDENCE_THRESHOLD",
-    type=click.FloatRange(0, 1),
-    default=0.6,
-    help="Cut off for which bug traces should result in issues in the repository.",
 )
 @click.option(
     "-C",
@@ -85,19 +77,32 @@ def _json_callback(ctx, param, value):
     callback=_json_callback,
     help="Json dictionary containing service related information for authentication.",
 )
+@click.option(
+    "--commit-hash",
+    envvar="VARANGIAN_COMMIT_HASH",
+    type=str,
+    help="Specific commit for which the augmented static analyzer was run.",
+)
 def cli(
-    namespace, repo, predictions_file, trace_file, confidence_threshold, max_count, trace_preview_length, service_dict
+    namespace,
+    repo,
+    predictions_file,
+    trace_directory,
+    max_count,
+    trace_preview_length,
+    service_dict,
+    commit_hash,
 ):
     """Run base command for varangian git forge application."""
     lib.run(
         repo=repo,
         predictions_file=predictions_file,
-        trace_file=trace_file,
+        trace_directory=trace_directory,
         namespace=namespace,
-        confidence_threshold=confidence_threshold,
         max_count=max_count,
         trace_preview_length=trace_preview_length,
         service_dict=service_dict,
+        commit_hash=commit_hash,
     )
 
 
