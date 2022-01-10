@@ -19,7 +19,7 @@
 
 # the first line of the body is to ensure we don't duplicate issuess
 VARANGIAN_BUG_BODY = """
-<!-- {bug_id} -->
+<!-- {bug_ids} -->
 ## Varangian Defect Detector Bot:
 Varangian is a bot which uses Augmented Static Analysis to automatically create issues for bugs in the latest commit.
 More information: https://github.com/AICoE/Varangian
@@ -27,25 +27,30 @@ More information: https://github.com/AICoE/Varangian
 Infer bug type: [{bug_type}]({bug_type_link})\n
 Location: [{location}]({bug_link})\n
 Description: {description}\n
-[Rank](https://github.com/AICoE/Varangian/blob/main/docs/metrics/README.md#varangian-issue): {rank}\n
 [Likelihood](https://github.com/AICoE/Varangian/blob/main/docs/metrics/README.md#varangian-issue): {confidence}\n
-## Bug trace:
+## Possible bug location:
+{location}
 ```
-{trace_preview}
-```
-<details><summary><b>Show full trace</b></summary>
-<p>
-
-```
-{full_trace}
+{bug_trace_root}
 ```
 
-</p>
-</details>
+## All traces:
+"""
 
-## Feedback
+ISSUE_FOOTER = """
+\n## Feedback
 
 Please open issues [here](https://github.com/AICoE/Varangian/issues/new/choose) if you have any feedback you would like
 to give us.
 
+"""
+
+SINGLE_TRACE_CONTENTS = """
+\n<details><summary><b>Show trace for bug with rank {rank}</summary>
+[Bug Rank](https://github.com/AICoE/Varangian/blob/main/docs/metrics/README.md#varangian-issue): {rank}\n
+
+```
+{trace_contents}
+```
+</details>
 """
