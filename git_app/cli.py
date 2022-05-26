@@ -62,14 +62,6 @@ def _json_callback(ctx, param, value):
     help="Maximum number of issues which can be opened in a single run.",
 )
 @click.option(
-    "-l",
-    "--trace-preview-length",
-    envvar="VARANGIAN_TRACE_PREVIEW_LENGTH",
-    type=click.IntRange(0),
-    default=None,
-    help="Number of lines of the bug trace to include in the issue body, None indicates inclusion of the full trace.",
-)
-@click.option(
     "-s",
     "--service-dict",
     envvar="VARANGIAN_SERVICE_DICT",
@@ -88,19 +80,15 @@ def cli(
     repo,
     predictions_file,
     trace_directory,
-    max_count,
-    trace_preview_length,
     service_dict,
     ref,
 ):
     """Run base command for varangian git forge application."""
-    lib.run2(
+    lib.create_issue_with_comments(
         repo=repo,
         predictions_file=predictions_file,
         trace_directory=trace_directory,
         namespace=namespace,
-        # max_count=max_count,
-        trace_preview_length=trace_preview_length,
         service_dict=service_dict,
         ref=ref,
     )

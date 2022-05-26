@@ -21,6 +21,7 @@ from typing import Dict, Optional, List, NamedTuple, Tuple, Set
 import re
 import logging
 import os
+import urllib.parse
 
 from ogr.abstract import IssueStatus, Issue, GitService, GitProject
 from ogr.services.github import GithubService, GithubProject
@@ -28,7 +29,7 @@ from ogr.services.gitlab import GitlabService, GitlabProject
 from ogr.services.pagure import PagureService, PagureProject
 
 from config import _Config
-from templates import VARANGIAN_BUG_BODY, SINGLE_TRACE_CONTENTS, ISSUE_FOOTER
+from templates import VARANGIAN_BUG_BODY, SINGLE_TRACE_CONTENTS, ISSUE_FOOTER, ISSUE_BODY, CREATE_ISSUE_SECTION
 
 
 RE_BUG_ID_HEADER = r"<!-- ([\w]{40})((,[\w]{40})*) -->"
@@ -289,13 +290,12 @@ def _aggregate_bugs(predictions_file_name: str, closed_issue_bug_ids: set) -> Li
     return to_ret
 
 
-def run(  # original implementation, one issue per aggregated bug
+def create_individual_issues(  # original implementation, one issue per aggregated bug
     repo: str,
     predictions_file: str,
     trace_directory: str,
     namespace: str,
     max_count: int = 7,
-    trace_preview_length: int = 5,
     service_dict: Optional[Dict[str, str]] = None,
     commit_hash: Optional[str] = None,
 ) -> None:
@@ -320,12 +320,11 @@ def run(  # original implementation, one issue per aggregated bug
     )
 
 
-def run2(  # new implementation, one issue for each run, each comment is a single aggregated bug
+def create_issue_with_comments(  # new implementation, one issue for each run, each comment is a single aggregated bug
     repo: str,
     predictions_file: str,
     trace_directory: str,
     namespace: str,
-    trace_preview_length: int = 5,
     service_dict: Optional[Dict[str, str]] = None,
     ref: Optional[str] = None,
 ):
@@ -353,9 +352,8 @@ def run2(  # new implementation, one issue for each run, each comment is a singl
 
 
 def _open_base_issue(ogr_project: GitProject, ref: str):
-    title = f"Varangian issue for ref {ref}"
-    body = f"""This issue is a list of Infer bugs for ref: {ref}. They are sorted by likelihood of being true
-    positives."""
+    title = "Varangian: Prioritized Defects"
+    body = ISSUE_BODY.format(ref=ref)
     issue = ogr_project.create_issue(title=title, body=body)
     return issue
 
@@ -371,13 +369,23 @@ def _ingest_results_and_create_comments(
         title, body = _generate_issue_title_and_body(
             ogr_project, agg_list=agg_list, trace_directory=trace_directory, commit_hash=ref
         )
-        issue.comment(body=f"## {title}\n\n{body}")
+        if isinstance(ogr_project, GithubProject):
+            params = {"title": title, "body": body}
+            create_issue = CREATE_ISSUE_SECTION.format(
+                project_url=ogr_project.get_web_url().rstrip("/"), params=urllib.parse.urlencode(params)
+            )
+        elif isinstance(ogr_project, GitlabProject):
+            params = {"issue[title]": title, "issue[description]": body}
+            create_issue = CREATE_ISSUE_SECTION.format(
+                project_url=ogr_project.get_web_url().rstrip("/"), params=urllib.parse.urlencode(params)
+            )
+        else:
+            create_issue = ""
+        issue.comment(body=f"## {title}\n\n{body}{create_issue}")
 
 
 # TODO: get all false positives for this project
-# TODO: delete false positives
 # TODO: aggregate bug ids
-# TODO: generate comment for each aggregated issue
 
 # TODO: add checkbox to mark bug as false positive or true positive
 
