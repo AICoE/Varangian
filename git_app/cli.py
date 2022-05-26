@@ -78,10 +78,10 @@ def _json_callback(ctx, param, value):
     help="Json dictionary containing service related information for authentication.",
 )
 @click.option(
-    "--commit-hash",
+    "--ref",
     envvar="VARANGIAN_COMMIT_HASH",
     type=str,
-    help="Specific commit for which the augmented static analyzer was run.",
+    help="Specific ref for which the augmented static analyzer was run.",
 )
 def cli(
     namespace,
@@ -91,18 +91,18 @@ def cli(
     max_count,
     trace_preview_length,
     service_dict,
-    commit_hash,
+    ref,
 ):
     """Run base command for varangian git forge application."""
-    lib.run(
+    lib.run2(
         repo=repo,
         predictions_file=predictions_file,
         trace_directory=trace_directory,
         namespace=namespace,
-        max_count=max_count,
+        # max_count=max_count,
         trace_preview_length=trace_preview_length,
         service_dict=service_dict,
-        commit_hash=commit_hash,
+        ref=ref,
     )
 
 

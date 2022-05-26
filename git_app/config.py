@@ -42,6 +42,6 @@ class _Config:
         elif cls.SERVICE_NAME == "GITLAB":
             return GitlabService(token=cls.AUTH_TOKEN, instance_url=cls.SERVICE_URL)
         elif cls.SERVICE_NAME == "PAGURE":
-            return PagureService(token=cls.AUTH_TOKEN, instance_url=cls.SERVICE_URL)
+            return PagureService(token=cls.AUTH_TOKEN, instance_url=cls.SERVICE_URL or "https://pagure.io")
         else:
             raise NotImplementedError(f"Varangian cannot run on {cls.SERVICE_NAME} git services.")

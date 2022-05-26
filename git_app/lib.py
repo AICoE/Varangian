@@ -17,13 +17,12 @@
 
 """Library functions for Varangian git application."""
 
-from typing import Dict, Optional, List, NamedTuple, Tuple
+from typing import Dict, Optional, List, NamedTuple, Tuple, Set
 import re
 import logging
 import os
 
-from ogr.services.base import BaseGitService, BaseGitProject
-from ogr.abstract import IssueStatus, Issue
+from ogr.abstract import IssueStatus, Issue, GitService, GitProject
 from ogr.services.github import GithubService, GithubProject
 from ogr.services.gitlab import GitlabService, GitlabProject
 from ogr.services.pagure import PagureService, PagureProject
@@ -62,7 +61,7 @@ def _get_all_ids_from_issue(issue: Issue) -> Optional[List[str]]:
     return ids
 
 
-def _ogr_service_from_dict(service_dict: Dict[str, str]) -> BaseGitService:
+def _ogr_service_from_dict(service_dict: Dict[str, str]) -> GitService:
     if service_dict["service_name"] == "GITHUB":
         return GithubService(
             token=service_dict.get("auth_token"),
@@ -72,12 +71,15 @@ def _ogr_service_from_dict(service_dict: Dict[str, str]) -> BaseGitService:
     elif service_dict["service_name"] == "GITLAB":
         return GitlabService(token=service_dict.get("auth_token"), instance_url=service_dict.get("service_url"))
     elif service_dict["service_name"] == "PAGURE":
-        return PagureService(token=service_dict.get("auth_token"), instance_url=service_dict.get("service_url"))
+        return PagureService(
+            token=service_dict.get("auth_token"),
+            instance_url=service_dict.get("service_url", "https://pagure.io"),
+        )
     else:
         raise NotImplementedError(f"Varangian cannot run on {service_dict['service_name']} git services.")
 
 
-def _get_link_from_location(ogr_project: BaseGitProject, location: str, git_ref: Optional[str] = None):
+def _get_link_from_location(ogr_project: GitProject, location: str, git_ref: Optional[str] = None):
     if git_ref is None:
         git_ref = ogr_project.default_branch
     if isinstance(ogr_project, GithubProject):
@@ -109,7 +111,7 @@ def _get_trace_desc_and_root(
 
 
 def _generate_issue_title_and_body(
-    ogr_project: BaseGitProject,
+    ogr_project: GitProject,
     agg_list: List[AugSaBug],
     trace_directory: str,
     commit_hash: Optional[str] = None,
@@ -143,7 +145,7 @@ def _generate_issue_title_and_body(
 
 
 def _update_issue(
-    ogr_project: BaseGitProject,
+    ogr_project: GitProject,
     trace_directory: str,
     issue: Issue,
     agg_list: List[AugSaBug],
@@ -156,13 +158,13 @@ def _update_issue(
         commit_hash=commit_hash,
     )
     if issue.title != title:
-        issue.title = title
+        issue.title = title  # type: ignore
     if issue.description != body:
-        issue.description = body
+        issue.description = body  # type: ignore
 
 
 def _update_all(
-    ogr_project: BaseGitProject,
+    ogr_project: GitProject,
     trace_directory: str,
     to_update: List[Tuple[List[AugSaBug], Issue]],
     commit_hash: Optional[str] = None,
@@ -177,7 +179,7 @@ def _update_all(
         )
 
 
-def _get_all_closed_bug_ids(ogr_project: BaseGitProject):
+def _get_all_closed_bug_ids(ogr_project: GitProject):
     to_ret = set()
     for issue in ogr_project.get_issue_list(status=IssueStatus.closed, author=ogr_project.service.user.get_username()):
         to_ret.update(_get_all_ids_from_issue(issue) or [])  # handles the case where the function returns None
@@ -185,7 +187,7 @@ def _get_all_closed_bug_ids(ogr_project: BaseGitProject):
 
 
 def _create_issue(
-    ogr_project: BaseGitProject,
+    ogr_project: GitProject,
     agg_list: List[AugSaBug],
     trace_directory: str,
     commit_hash: Optional[str] = None,
@@ -218,8 +220,8 @@ def _get_confidence(priority: str) -> Optional[str]:
         return None
 
 
-def _injest_results_and_create_issues(
-    ogr_project: BaseGitProject,
+def _ingest_results_and_create_issues(
+    ogr_project: GitProject,
     trace_directory: str,
     max_count: int,
     commit_hash: Optional[str],
@@ -247,7 +249,7 @@ def _which_aggregate_list_has_id(aggregated_bug_list: List[List[AugSaBug]], bug_
 
 
 def _close_issues4bugs_not_in_results(
-    ogr_project: BaseGitProject, predictions_file_name: str, aggregated_bug_list: List[List[AugSaBug]]
+    ogr_project: GitProject, predictions_file_name: str, aggregated_bug_list: List[List[AugSaBug]]
 ) -> List[Tuple[List[AugSaBug], Issue]]:
     # returns a list of tuples with aggregated_bug_list and the issue they are associated with
     issue_list = ogr_project.get_issue_list(author=ogr_project.service.user.get_username())
@@ -287,7 +289,7 @@ def _aggregate_bugs(predictions_file_name: str, closed_issue_bug_ids: set) -> Li
     return to_ret
 
 
-def run(
+def run(  # original implementation, one issue per aggregated bug
     repo: str,
     predictions_file: str,
     trace_directory: str,
@@ -308,7 +310,7 @@ def run(
     closed_issue_bug_ids = _get_all_closed_bug_ids(project)
     aggregated_bug_list = _aggregate_bugs(predictions_file, closed_issue_bug_ids)
     to_update = _close_issues4bugs_not_in_results(project, predictions_file, aggregated_bug_list)
-    _injest_results_and_create_issues(
+    _ingest_results_and_create_issues(
         ogr_project=project,
         trace_directory=trace_directory,
         max_count=max_count,
@@ -316,3 +318,67 @@ def run(
         aggregated_bug_list=aggregated_bug_list,
         to_update=to_update,
     )
+
+
+def run2(  # new implementation, one issue for each run, each comment is a single aggregated bug
+    repo: str,
+    predictions_file: str,
+    trace_directory: str,
+    namespace: str,
+    trace_preview_length: int = 5,
+    service_dict: Optional[Dict[str, str]] = None,
+    ref: Optional[str] = None,
+):
+    """Take output from Varangian application and create single issue on git forge."""
+    if service_dict is not None:
+        service = _ogr_service_from_dict(service_dict)
+    else:
+        service = _Config.ogr_service()
+    project = service.get_project(namespace=namespace, repo=repo)
+    if ref is None:
+        ref = project.default_branch
+
+    # TODO: false_positives = _get_false_positives(service_url, project_id)
+    false_positives = _get_false_positives(project.get_web_url())
+
+    aggregated_bug_list = _aggregate_bugs(predictions_file, false_positives)
+    issue = _open_base_issue(ogr_project=project, ref=ref)
+    _ingest_results_and_create_comments(
+        ogr_project=project,
+        issue=issue,
+        trace_directory=trace_directory,
+        ref=ref,
+        aggregated_bug_list=aggregated_bug_list,
+    )
+
+
+def _open_base_issue(ogr_project: GitProject, ref: str):
+    title = f"Varangian issue for ref {ref}"
+    body = f"""This issue is a list of Infer bugs for ref: {ref}. They are sorted by likelihood of being true
+    positives."""
+    issue = ogr_project.create_issue(title=title, body=body)
+    return issue
+
+
+def _get_false_positives(project_url: str) -> Set[str]:
+    return set()  # TODO: replace with DB call
+
+
+def _ingest_results_and_create_comments(
+    ogr_project: GitProject, issue: Issue, trace_directory: str, ref: str, aggregated_bug_list: List[List[AugSaBug]]
+):
+    for agg_list in aggregated_bug_list:
+        title, body = _generate_issue_title_and_body(
+            ogr_project, agg_list=agg_list, trace_directory=trace_directory, commit_hash=ref
+        )
+        issue.comment(body=f"## {title}\n\n{body}")
+
+
+# TODO: get all false positives for this project
+# TODO: delete false positives
+# TODO: aggregate bug ids
+# TODO: generate comment for each aggregated issue
+
+# TODO: add checkbox to mark bug as false positive or true positive
+
+# OUTSIDE TODO: create a controller which catches edits to issue comments
