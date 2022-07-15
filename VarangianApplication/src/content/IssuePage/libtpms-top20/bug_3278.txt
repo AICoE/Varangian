@@ -1,0 +1,115 @@
+#3278
+src/tpm12/tpm_migration.c:1569: error: Buffer Overrun L3
+  Offset added: [1, +oo] Size: [0, +oo] by call to `TPM_StoreAsymkey_Store`.
+
+src/tpm12/tpm_migration.c:1544:15: Call
+1542. 	/* NOTE TPM_StoreAsymkey_LoadO1() extracts TPM_STORE_ASYMKEY from the OAEP encoded
+1543. 	   TPM_MIGRATE_ASYMKEY. */
+1544. 	returnCode = TPM_StoreAsymkey_LoadO1(&d2AsymKey, o1Oaep, d1DecryptLength);
+                    ^
+1545.     }
+1546.     /* 6. Create k1 by combining seed and the TPM_MIGRATE_ASYMKEY -> partPrivKey field */
+
+src/tpm12/tpm_key.c:2410:1: Parameter `tpm_store_asymkey->privKey.p_key.buffer`
+  2408. */
+  2409. 
+  2410. TPM_RESULT TPM_StoreAsymkey_LoadO1(TPM_STORE_ASYMKEY	*tpm_store_asymkey,	/* output */
+        ^
+  2411. 				   BYTE			*o1,			/* input */
+  2412. 				   uint32_t		o1_size)		/* input */
+
+src/tpm12/tpm_migration.c:1569:15: Call
+1567. 	/* 9. Create outData using the key in parentHandle to perform the encryption */
+1568. 	/* serialize d2key  to d2 */
+1569. 	returnCode = TPM_StoreAsymkey_Store(&d2_sbuffer, FALSE, &d2AsymKey);
+                    ^
+1570.     }
+1571.     /* encrypt d2 with parentKey */
+
+src/tpm12/tpm_key.c:2178:1: Parameter `tpm_store_asymkey->privKey.p_key.buffer`
+  2176. #endif
+  2177. 
+  2178. TPM_RESULT TPM_StoreAsymkey_Store(TPM_STORE_BUFFER *sbuffer,
+        ^
+  2179. 				  TPM_BOOL isEK,
+  2180. 				  const TPM_STORE_ASYMKEY *tpm_store_asymkey)
+
+src/tpm12/tpm_key.c:2203:7: Call
+  2201.     /* store privKey */
+  2202.     if (rc == 0) {
+  2203. 	rc = TPM_StorePrivkey_Store(sbuffer, &(tpm_store_asymkey->privKey));
+              ^
+  2204.     }
+  2205.     return rc;
+
+src/tpm12/tpm_key.c:2680:1: Parameter `tpm_store_privkey->p_key.buffer`
+    2678.  */
+    2679. 
+    2680. TPM_RESULT TPM_StorePrivkey_Store(TPM_STORE_BUFFER *sbuffer,
+          ^
+    2681. 				  const TPM_STORE_PRIVKEY *tpm_store_privkey)
+    2682. {
+
+src/tpm12/tpm_key.c:2688:7: Call
+    2686.     if (rc == 0) {
+    2687. 	TPM_PrintFour("  TPM_StorePrivkey_Store: p",  tpm_store_privkey->p_key.buffer);
+    2688. 	rc = TPM_SizedBuffer_Store(sbuffer, &(tpm_store_privkey->p_key));
+                ^
+    2689.     }
+    2690.     return rc;
+
+src/tpm12/tpm_sizedbuffer.c:194:1: Parameter `tpm_sized_buffer->buffer`
+      192.  */
+      193. 
+      194. TPM_RESULT TPM_SizedBuffer_Store(TPM_STORE_BUFFER *sbuffer,
+           ^
+      195.                                  const TPM_SIZED_BUFFER *tpm_sized_buffer)
+      196. {
+
+src/tpm12/tpm_sizedbuffer.c:206:14: Call
+      204.     /* append the data */
+      205.     if (rc == 0) {
+      206.         rc = TPM_Sbuffer_Append(sbuffer, tpm_sized_buffer->buffer, tpm_sized_buffer->size);
+                        ^
+      207.     }
+      208.     return rc;
+
+src/tpm12/tpm_store.c:208:1: <Offset trace>
+206. */
+207. 
+208. TPM_RESULT TPM_Sbuffer_Append(TPM_STORE_BUFFER *sbuffer,
+     ^
+209.                               const unsigned char *data,
+210.                               size_t data_length)
+
+src/tpm12/tpm_store.c:208:1: Parameter `data_length`
+        206. */
+        207. 
+        208. TPM_RESULT TPM_Sbuffer_Append(TPM_STORE_BUFFER *sbuffer,
+             ^
+        209.                               const unsigned char *data,
+        210.                               size_t data_length)
+
+src/tpm12/tpm_store.c:208:1: <Length trace>
+206. */
+207. 
+208. TPM_RESULT TPM_Sbuffer_Append(TPM_STORE_BUFFER *sbuffer,
+     ^
+209.                               const unsigned char *data,
+210.                               size_t data_length)
+
+src/tpm12/tpm_store.c:208:1: Parameter `data`
+        206. */
+        207. 
+        208. TPM_RESULT TPM_Sbuffer_Append(TPM_STORE_BUFFER *sbuffer,
+             ^
+        209.                               const unsigned char *data,
+        210.                               size_t data_length)
+
+src/tpm12/tpm_store.c:261:13: Array access: Offset added: [1, +oo] Size: [0, +oo] by call to `TPM_StoreAsymkey_Store` 
+        259.     if (rc == 0) {
+        260.         if (data_length > 0) { /* libtpms added (ubsan) */
+        261.             memcpy(sbuffer->buffer_current, data, data_length);
+                         ^
+        262.             sbuffer->buffer_current += data_length;
+        263.         }

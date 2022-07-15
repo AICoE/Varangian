@@ -1,0 +1,67 @@
+#198
+src/tpm12/tpm_owner.c:266: error: Buffer Overrun L3
+  Offset: 3 Size: [0, +oo] by call to `TPM_RSAPrivateDecryptH`.
+
+src/tpm12/tpm_owner.c:145:5: Call
+143. 
+144.     /* so that Delete's are safe */
+145.     TPM_SizedBuffer_Init(&encOwnerAuth);	/* freed @1 */
+         ^
+146.     TPM_SizedBuffer_Init(&encSrkAuth);		/* freed @2 */
+147.     TPM_Key_Init(&srkParams);			/* freed @3 */
+
+src/tpm12/tpm_sizedbuffer.c:56:5: Assignment
+  54. {
+  55.     tpm_sized_buffer->size = 0;
+  56.     tpm_sized_buffer->buffer = NULL;
+          ^
+  57.     return;
+  58. }
+
+src/tpm12/tpm_owner.c:266:15: Call
+264.     /* a.  This requires that A1 was encrypted using the PUBEK */
+265.     if (returnCode == TPM_SUCCESS) {
+266. 	returnCode = TPM_RSAPrivateDecryptH(a1Auth,			/* decrypted data */
+                   ^
+267. 					    &a1Auth_length,		/* actual size of A1 */
+268. 					    TPM_SECRET_SIZE,		/* size of A1 buffer */
+
+src/tpm12/tpm_cryptoh.c:1583:1: Parameter `encrypt_data`
+  1581. */
+  1582. 
+  1583. TPM_RESULT TPM_RSAPrivateDecryptH(unsigned char *decrypt_data,	/* decrypted data */
+        ^
+  1584. 				  uint32_t *decrypt_data_length,	/* length of data put into
+  1585. 									   decrypt_data */
+
+src/tpm12/tpm_cryptoh.c:1600:5: Call
+  1598. 
+  1599.     printf(" TPM_RSAPrivateDecryptH: Data size %u bytes\n", encrypt_data_size);
+  1600.     TPM_PrintFourLimit("  TPM_RSAPrivateDecryptH: Encrypt data", encrypt_data, encrypt_data_size);
+            ^
+  1601.     if (rc == 0) {
+  1602. 	if (tpm_key == NULL) {
+
+src/tpm_debug.c:57:1: <Length trace>
+55. #else
+56. 
+57. void TPM_PrintFourLimit(const char *string,
+    ^
+58.                         const unsigned char *buff, size_t buflen)
+59. {
+
+src/tpm_debug.c:57:1: Parameter `buff`
+    55. #else
+    56. 
+    57. void TPM_PrintFourLimit(const char *string,
+        ^
+    58.                         const unsigned char *buff, size_t buflen)
+    59. {
+
+src/tpm_debug.c:89:20: Array access: Offset: 3 Size: [0, +oo] by call to `TPM_RSAPrivateDecryptH` 
+    87.                    buff[1],
+    88.                    buff[2],
+    89.                    buff[3]);
+                           ^
+    90.         }
+    91.     }

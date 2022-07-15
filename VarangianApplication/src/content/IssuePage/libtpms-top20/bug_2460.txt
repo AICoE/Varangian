@@ -1,0 +1,107 @@
+#2460
+src/tpm12/tpm_migration.c:1111: error: Buffer Overrun L3
+  Offset added: [1, +oo] (⇐ [0, 65] + [1, +oo]) Size: [0, +oo] by call to `TPM_StoreAsymkey_Load`.
+
+src/tpm12/tpm_migration.c:957:5: Assignment
+955.     TPM_SizedBuffer_Init(&random);			/* freed @3 */
+956.     TPM_SizedBuffer_Init(&outData);			/* freed @4 */
+957.     d1Decrypt = NULL;					/* freed @5 */
+         ^
+958.     TPM_StoreAsymkey_Init(&d1AsymKey);			/* freed @6 */
+959.     TPM_Sbuffer_Init(&mka_sbuffer);			/* freed @7 */
+
+src/tpm12/tpm_migration.c:1109:2: Assignment
+1107.     /* deserialize the stream to a TPM_STORE_ASYMKEY d1AsymKey */
+1108.     if (returnCode == TPM_SUCCESS) {
+1109. 	stream = d1Decrypt;
+       ^
+1110. 	stream_size = d1DecryptLength;
+1111. 	returnCode = TPM_StoreAsymkey_Load(&d1AsymKey, FALSE,
+
+src/tpm12/tpm_migration.c:1111:15: Call
+1109. 	stream = d1Decrypt;
+1110. 	stream_size = d1DecryptLength;
+1111. 	returnCode = TPM_StoreAsymkey_Load(&d1AsymKey, FALSE,
+                    ^
+1112. 					   &stream, &stream_size,
+1113. 					   NULL,	/* TPM_KEY_PARMS */
+
+src/tpm12/tpm_key.c:2033:1: Parameter `stream`
+  2031. */
+  2032. 
+  2033. TPM_RESULT TPM_StoreAsymkey_Load(TPM_STORE_ASYMKEY *tpm_store_asymkey,
+        ^
+  2034. 				 TPM_BOOL isEK,
+  2035. 				 unsigned char **stream,	
+
+src/tpm12/tpm_key.c:2076:7: Call
+  2074.     /* load privKey - actually prime factor p */
+  2075.     if (rc == 0) {
+  2076. 	rc = TPM_SizedBuffer_Load((&(tpm_store_asymkey->privKey.p_key)),
+              ^
+  2077. 				  stream, stream_size);
+  2078.     }
+
+src/tpm12/tpm_sizedbuffer.c:83:14: Call
+    81.     printf("  TPM_SizedBuffer_Load:\n");
+    82.     if (rc == 0) {
+    83.         rc = TPM_Load32(&(tpm_sized_buffer->size), stream, stream_size);
+                     ^
+    84.     }
+    85.     /* if the size is not 0 */
+
+src/tpm12/tpm_load.c:93:1: Parameter `tpm_uint32`
+      91. */
+      92. 
+      93. TPM_RESULT TPM_Load32(uint32_t *tpm_uint32,
+          ^
+      94.                       unsigned char **stream,
+      95.                       uint32_t *stream_size)
+
+src/tpm12/tpm_sizedbuffer.c:93:18: Call
+    91.         /* copy the buffer */
+    92.         if (rc == 0) {
+    93.             rc = TPM_Loadn(tpm_sized_buffer->buffer, tpm_sized_buffer->size, stream, stream_size);
+                         ^
+    94.         }
+    95.     }
+
+src/tpm12/tpm_load.c:202:1: <Offset trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `data_length`
+      200.    no endian adjustments. */
+      201. 
+      202. TPM_RESULT TPM_Loadn(BYTE *data,
+           ^
+      203.                      size_t data_length,
+      204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: <Length trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `stream`
+      200.    no endian adjustments. */
+      201. 
+      202. TPM_RESULT TPM_Loadn(BYTE *data,
+           ^
+      203.                      size_t data_length,
+      204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:218:9: Array access: Offset added: [1, +oo] (⇐ [0, 65] + [1, +oo]) Size: [0, +oo] by call to `TPM_StoreAsymkey_Load` 
+      216.     /* load the parameter */
+      217.     if (rc == 0) {
+      218.         memcpy(data, *stream, data_length);
+                   ^
+      219.         *stream += data_length;
+      220.         *stream_size -= data_length;

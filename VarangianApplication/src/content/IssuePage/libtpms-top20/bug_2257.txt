@@ -1,0 +1,91 @@
+#2257
+src/tpm12/tpm_key.c:807: error: Integer Overflow L2
+  ([0, `stream_size`] - 20):unsigned32 by call to `TPM_StoreAsymkey_Load`.
+
+src/tpm12/tpm_key.c:777:1: Parameter `stream_size`
+775. */
+776. 
+777. TPM_RESULT TPM_Key_LoadStoreAsymKey(TPM_KEY *tpm_key,
+     ^
+778. 				    TPM_BOOL isEK,
+779. 				    unsigned char **stream,	/* decrypted encData (clear text) */
+
+src/tpm12/tpm_key.c:807:7: Call
+805.     if (rc == 0) {
+806. 	TPM_StoreAsymkey_Init(tpm_key->tpm_store_asymkey);
+807. 	rc = TPM_StoreAsymkey_Load(tpm_key->tpm_store_asymkey, isEK,
+           ^
+808. 				   stream, stream_size,
+809. 				   &(tpm_key->algorithmParms), &(tpm_key->pubKey));
+
+src/tpm12/tpm_key.c:2033:1: Parameter `stream_size`
+  2031. */
+  2032. 
+  2033. TPM_RESULT TPM_StoreAsymkey_Load(TPM_STORE_ASYMKEY *tpm_store_asymkey,
+        ^
+  2034. 				 TPM_BOOL isEK,
+  2035. 				 unsigned char **stream,	
+
+src/tpm12/tpm_key.c:2064:7: Call
+  2062.     /* load usageAuth */
+  2063.     if ((rc == 0) && !isEK) {
+  2064. 	rc = TPM_Secret_Load(tpm_store_asymkey->usageAuth, stream, stream_size);
+              ^
+  2065.     }
+  2066.     /* load migrationAuth */
+
+src/tpm12/tpm_secret.c:66:1: Parameter `stream_size`
+    64. */
+    65. 
+    66. TPM_RESULT TPM_Secret_Load(TPM_SECRET tpm_secret,
+        ^
+    67.                            unsigned char **stream,
+    68.                            uint32_t *stream_size)
+
+src/tpm12/tpm_secret.c:73:10: Call
+    71. 
+    72.     printf("  TPM_Secret_Load:\n");
+    73.     rc = TPM_Loadn(tpm_secret, TPM_SECRET_SIZE, stream, stream_size);
+                 ^
+    74.     return rc;
+    75. }
+
+src/tpm12/tpm_load.c:202:1: <LHS trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `data_length`
+      200.    no endian adjustments. */
+      201. 
+      202. TPM_RESULT TPM_Loadn(BYTE *data,
+           ^
+      203.                      size_t data_length,
+      204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: <RHS trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `data_length`
+      200.    no endian adjustments. */
+      201. 
+      202. TPM_RESULT TPM_Loadn(BYTE *data,
+           ^
+      203.                      size_t data_length,
+      204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:220:9: Binary operation: ([0, stream_size] - 20):unsigned32 by call to `TPM_StoreAsymkey_Load` 
+      218.         memcpy(data, *stream, data_length);
+      219.         *stream += data_length;
+      220.         *stream_size -= data_length;
+                   ^
+      221.     }
+      222.     return rc;

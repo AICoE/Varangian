@@ -1,0 +1,219 @@
+#5929
+src/tpm12/tpm_session.c:4778: error: Buffer Overrun L3
+  Offset: [0, 26] (⇐ [0, 23] + [0, 3]) Size: [0, +oo] by call to `TPM_KeyHandleEntry_Load`.
+
+src/tpm12/tpm_session.c:4772:15: Call
+4770. 	stream = contextSensitiveBuffer;
+4771. 	stream_size = contextSensitiveBuffer_length;
+4772. 	returnCode = TPM_ContextSensitive_Load(&contextSensitive, &stream, &stream_size);
+                    ^
+4773.     }
+4774.     if (returnCode == TPM_SUCCESS) {
+
+src/tpm12/tpm_session.c:1328:1: Parameter `tpm_context_sensitive->internalData.buffer`
+  1326. */
+  1327. 
+  1328. TPM_RESULT TPM_ContextSensitive_Load(TPM_CONTEXT_SENSITIVE *tpm_context_sensitive,
+        ^
+  1329. 				     unsigned char **stream,
+  1330. 				     uint32_t *stream_size)
+
+src/tpm12/tpm_session.c:4776:2: Assignment
+4774.     if (returnCode == TPM_SUCCESS) {
+4775. 	printf("TPM_Process_LoadKeyContext: Loading TPM_KEY_HANDLE_ENTRY from internalData\n");
+4776. 	stream = contextSensitive.internalData.buffer;
+       ^
+4777. 	stream_size = contextSensitive.internalData.size;
+4778. 	returnCode = TPM_KeyHandleEntry_Load(&tpm_key_handle_entry, &stream, &stream_size);
+
+src/tpm12/tpm_session.c:4778:15: Call
+4776. 	stream = contextSensitive.internalData.buffer;
+4777. 	stream_size = contextSensitive.internalData.size;
+4778. 	returnCode = TPM_KeyHandleEntry_Load(&tpm_key_handle_entry, &stream, &stream_size);
+                    ^
+4779.     }
+4780.     /* check contextNonce */
+
+src/tpm12/tpm_key.c:3011:1: Parameter `stream`
+  3009. */
+  3010. 
+  3011. TPM_RESULT TPM_KeyHandleEntry_Load(TPM_KEY_HANDLE_ENTRY *tpm_key_handle_entry,
+        ^
+  3012. 				   unsigned char **stream,
+  3013. 				   uint32_t *stream_size)
+
+src/tpm12/tpm_key.c:3020:7: Call
+  3018.     /* load handle */
+  3019.     if (rc == 0) {
+  3020. 	rc = TPM_Load32(&(tpm_key_handle_entry->handle), stream, stream_size); 
+              ^
+  3021.     }
+  3022.     /* malloc space for the key member */
+
+src/tpm12/tpm_load.c:93:1: Parameter `stream`
+    91. */
+    92. 
+    93. TPM_RESULT TPM_Load32(uint32_t *tpm_uint32,
+        ^
+    94.                       unsigned char **stream,
+    95.                       uint32_t *stream_size)
+
+src/tpm12/tpm_key.c:3029:7: Call
+  3027.     if (rc == 0) {
+  3028. 	TPM_Key_Init(tpm_key_handle_entry->key);
+  3029. 	rc = TPM_Key_LoadClear(tpm_key_handle_entry->key,
+              ^
+  3030. 			       FALSE,			/* not EK */
+  3031. 			       stream, stream_size);
+
+src/tpm12/tpm_key.c:346:1: Parameter `stream`
+    344. */
+    345. 
+    346. TPM_RESULT TPM_Key_LoadClear(TPM_KEY *tpm_key,		/* result */
+         ^
+    347. 			     TPM_BOOL isEK,		/* key being loaded is EK */
+    348. 			     unsigned char **stream,	/* pointer to next parameter */
+
+src/tpm12/tpm_key.c:357:7: Call
+    355.     /* load public data */
+    356.     if (rc == 0) {
+    357. 	rc = TPM_Key_LoadPubData(tpm_key, isEK, stream, stream_size);
+               ^
+    358.     }
+    359.     /* load TPM_STORE_ASYMKEY size */
+
+src/tpm12/tpm_key.c:383:1: Parameter `stream`
+      381. */
+      382. 
+      383. TPM_RESULT TPM_Key_LoadPubData(TPM_KEY *tpm_key,	/* result */
+           ^
+      384. 			       TPM_BOOL isEK,		/* key being loaded is EK */
+      385. 			       unsigned char **stream,	/* pointer to next parameter */
+
+src/tpm12/tpm_key.c:408:8: Call
+      406. 	    /* load tag */
+      407. 	    if (rc == 0) {
+      408. 		rc = TPM_Load16(&(((TPM_KEY12 *)tpm_key)->tag), stream, stream_size);
+                  ^
+      409. 	    }
+      410. 	    /* load fill */
+
+src/tpm12/tpm_load.c:122:1: Parameter `stream`
+        120. */
+        121. 
+        122. TPM_RESULT TPM_Load16(uint16_t *tpm_uint16,
+             ^
+        123.                       unsigned char **stream,
+        124.                       uint32_t *stream_size)
+
+src/tpm12/tpm_key.c:433:7: Call
+      431.     /* load algorithmParms */
+      432.     if (rc == 0) {
+      433. 	rc = TPM_KeyParms_Load(&(tpm_key->algorithmParms), stream, stream_size);
+                 ^
+      434.     }
+      435.     /* load PCRInfo */
+
+src/tpm12/tpm_key.c:1546:1: Parameter `stream`
+        1544. */
+        1545. 
+        1546. TPM_RESULT TPM_KeyParms_Load(TPM_KEY_PARMS *tpm_key_parms,	/* result */
+              ^
+        1547. 			     unsigned char **stream,		/* pointer to next parameter */
+        1548. 			     uint32_t *stream_size)		/* stream size left */
+
+src/tpm12/tpm_key.c:1557:7: Call
+        1555.     /* load algorithmID */
+        1556.     if (rc == 0) {
+        1557. 	rc = TPM_Load32(&(tpm_key_parms->algorithmID), stream, stream_size);
+                    ^
+        1558.     }
+        1559.     /* load encScheme */
+
+src/tpm12/tpm_load.c:93:1: Parameter `stream`
+          91. */
+          92. 
+          93. TPM_RESULT TPM_Load32(uint32_t *tpm_uint32,
+              ^
+          94.                       unsigned char **stream,
+          95.                       uint32_t *stream_size)
+
+src/tpm12/tpm_key.c:1569:7: Call
+        1567.     /* load parmSize and parms */
+        1568.     if (rc == 0) {
+        1569. 	rc = TPM_SizedBuffer_Load(&(tpm_key_parms->parms), stream, stream_size);
+                    ^
+        1570.     }
+        1571.     if (rc == 0) {
+
+src/tpm12/tpm_sizedbuffer.c:75:1: Parameter `stream`
+          73. */
+          74. 
+          75. TPM_RESULT TPM_SizedBuffer_Load(TPM_SIZED_BUFFER *tpm_sized_buffer,     /* result */
+              ^
+          76.                                 unsigned char **stream,		/* pointer to next parameter */
+          77.                                 uint32_t *stream_size)		/* stream size left */
+
+src/tpm12/tpm_sizedbuffer.c:83:14: Call
+          81.     printf("  TPM_SizedBuffer_Load:\n");
+          82.     if (rc == 0) {
+          83.         rc = TPM_Load32(&(tpm_sized_buffer->size), stream, stream_size);
+                           ^
+          84.     }
+          85.     /* if the size is not 0 */
+
+src/tpm12/tpm_load.c:93:1: Parameter `stream`
+            91. */
+            92. 
+            93. TPM_RESULT TPM_Load32(uint32_t *tpm_uint32,
+                ^
+            94.                       unsigned char **stream,
+            95.                       uint32_t *stream_size)
+
+src/tpm12/tpm_load.c:109:23: Call
+            107.     /* load the parameter */
+            108.     if (rc == 0) {
+            109.         *tpm_uint32 = LOAD32(*stream, 0);
+                                       ^
+            110.         *stream += sizeof (uint32_t);
+            111.         *stream_size -= sizeof (uint32_t);
+
+src/tpm12/tpm_load.c:55:1: <Offset trace>
+53. /* The LOADn() functions convert a big endian stream to integer types */
+54. 
+55. uint32_t LOAD32(const unsigned char *buffer, unsigned int offset)
+    ^
+56. {
+57.     unsigned int i;
+
+src/tpm12/tpm_load.c:55:1: Parameter `offset`
+              53. /* The LOADn() functions convert a big endian stream to integer types */
+              54. 
+              55. uint32_t LOAD32(const unsigned char *buffer, unsigned int offset)
+                  ^
+              56. {
+              57.     unsigned int i;
+
+src/tpm12/tpm_load.c:55:1: <Length trace>
+53. /* The LOADn() functions convert a big endian stream to integer types */
+54. 
+55. uint32_t LOAD32(const unsigned char *buffer, unsigned int offset)
+    ^
+56. {
+57.     unsigned int i;
+
+src/tpm12/tpm_load.c:55:1: Parameter `buffer`
+              53. /* The LOADn() functions convert a big endian stream to integer types */
+              54. 
+              55. uint32_t LOAD32(const unsigned char *buffer, unsigned int offset)
+                  ^
+              56. {
+              57.     unsigned int i;
+
+src/tpm12/tpm_load.c:62:12: Array access: Offset: [0, 26] (⇐ [0, 23] + [0, 3]) Size: [0, +oo] by call to `TPM_KeyHandleEntry_Load` 
+              60.     for (i = 0 ; i < 4 ; i++) {
+              61. 	result <<= 8;
+              62. 	result |= buffer[offset + i];
+                             ^
+              63.     }
+              64.     return result;

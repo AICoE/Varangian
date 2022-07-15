@@ -1,0 +1,171 @@
+#4732
+src/tpm12/tpm_delegate.c:3044: error: Buffer Overrun L3
+  Offset added: [20, 22] (⇐ [0, 2] + 20) Size: [0, +oo] by call to `TPM_DelegateSensitive_DecryptEncData`.
+
+src/tpm12/tpm_delegate.c:2877:15: Call
+2875.     /* get blob parameter */
+2876.     if (returnCode == TPM_SUCCESS) {
+2877. 	returnCode = TPM_DelegateOwnerBlob_Load(&d1Blob, &command, &paramSize);
+                    ^
+2878.     }
+2879.     /* save the ending point of inParam's for authorization and auditing */
+
+src/tpm12/tpm_delegate.c:685:1: Parameter `tpm_delegate_owner_blob->sensitiveArea.size`
+  683. */
+  684. 
+  685. TPM_RESULT TPM_DelegateOwnerBlob_Load(TPM_DELEGATE_OWNER_BLOB *tpm_delegate_owner_blob,
+       ^
+  686. 				      unsigned char **stream,
+  687. 				      uint32_t *stream_size)
+
+src/tpm12/tpm_delegate.c:3044:3: Call
+3042. 	    printf("TPM_Process_DelegateLoadOwnerDelegation: Decrypting sensitiveArea\n");
+3043. 	    returnCode =
+3044. 		TPM_DelegateSensitive_DecryptEncData(&s1DelegateSensitive,	/* decrypted data */
+        ^
+3045. 						     &(d1Blob.sensitiveArea),	/* encrypted */
+3046. 						     tpm_state->tpm_permanent_data.delegateKey);
+
+src/tpm12/tpm_delegate.c:297:1: Parameter `sensitiveArea->size`
+  295. */
+  296. 
+  297. TPM_RESULT TPM_DelegateSensitive_DecryptEncData(TPM_DELEGATE_SENSITIVE *tpm_delegate_sensitive,
+       ^
+  298. 						TPM_SIZED_BUFFER *sensitiveArea,
+  299. 						TPM_SYMMETRIC_KEY_TOKEN delegateKey)
+
+src/tpm12/tpm_delegate.c:310:7: Call
+  308.     s1 = NULL;						/* freed @1 */
+  309.     if (rc == 0) {
+  310. 	rc = TPM_SymmetricKeyData_Decrypt(&s1,		/* decrypted data */
+             ^
+  311. 					  &s1_length,	/* length decrypted data */
+  312. 					  sensitiveArea->buffer, 
+
+src/tpm12/tpm_crypto.c:2849:1: Parameter `decrypt_data`
+    2847. */
+    2848. 
+    2849. TPM_RESULT TPM_SymmetricKeyData_Decrypt(unsigned char **decrypt_data,   /* output, caller frees */
+          ^
+    2850.                                         uint32_t *decrypt_length,		/* output */
+    2851.                                         const unsigned char *encrypt_data,	/* input */
+
+src/tpm12/tpm_delegate.c:317:2: Assignment
+  315.     }
+  316.     if (rc == 0) {
+  317. 	stream = s1;
+        ^
+  318. 	stream_size = s1_length;
+  319. 	rc = TPM_DelegateSensitive_Load(tpm_delegate_sensitive, &stream, &stream_size);
+
+src/tpm12/tpm_delegate.c:319:7: Call
+  317. 	stream = s1;
+  318. 	stream_size = s1_length;
+  319. 	rc = TPM_DelegateSensitive_Load(tpm_delegate_sensitive, &stream, &stream_size);
+             ^
+  320.     }
+  321.     free(s1);		/* @1 */
+
+src/tpm12/tpm_delegate.c:236:1: Parameter `stream`
+    234. */
+    235. 
+    236. TPM_RESULT TPM_DelegateSensitive_Load(TPM_DELEGATE_SENSITIVE *tpm_delegate_sensitive,
+         ^
+    237. 				      unsigned char **stream,
+    238. 				      uint32_t *stream_size)
+
+src/tpm12/tpm_delegate.c:245:7: Call
+    243.     /* check the tag */
+    244.     if (rc == 0) {
+    245. 	rc = TPM_CheckTag(TPM_TAG_DELEGATE_SENSITIVE, stream, stream_size);
+               ^
+    246.     }
+    247.     /* load authValue */
+
+src/tpm12/tpm_load.c:291:1: Parameter `stream`
+      289. */
+      290. 
+      291. TPM_RESULT TPM_CheckTag(TPM_STRUCTURE_TAG expectedTag,
+           ^
+      292. 			unsigned char **stream,
+      293. 			uint32_t   *stream_size)
+
+src/tpm12/tpm_load.c:299:14: Call
+      297.                            
+      298.     if (rc == 0) {      
+      299.         rc = TPM_Load16(&tag, stream, stream_size);
+                        ^
+      300.     }
+      301.     if (rc == 0) {
+
+src/tpm12/tpm_load.c:122:1: Parameter `stream`
+        120. */
+        121. 
+        122. TPM_RESULT TPM_Load16(uint16_t *tpm_uint16,
+             ^
+        123.                       unsigned char **stream,
+        124.                       uint32_t *stream_size)
+
+src/tpm12/tpm_delegate.c:249:7: Call
+    247.     /* load authValue */
+    248.     if (rc == 0) {
+    249. 	rc = TPM_Secret_Load(tpm_delegate_sensitive->authValue, stream, stream_size);
+               ^
+    250.     }
+    251.     return rc;
+
+src/tpm12/tpm_secret.c:66:1: Parameter `stream`
+      64. */
+      65. 
+      66. TPM_RESULT TPM_Secret_Load(TPM_SECRET tpm_secret,
+          ^
+      67.                            unsigned char **stream,
+      68.                            uint32_t *stream_size)
+
+src/tpm12/tpm_secret.c:73:10: Call
+      71. 
+      72.     printf("  TPM_Secret_Load:\n");
+      73.     rc = TPM_Loadn(tpm_secret, TPM_SECRET_SIZE, stream, stream_size);
+                   ^
+      74.     return rc;
+      75. }
+
+src/tpm12/tpm_load.c:202:1: <Offset trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `data_length`
+        200.    no endian adjustments. */
+        201. 
+        202. TPM_RESULT TPM_Loadn(BYTE *data,
+             ^
+        203.                      size_t data_length,
+        204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: <Length trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `stream`
+        200.    no endian adjustments. */
+        201. 
+        202. TPM_RESULT TPM_Loadn(BYTE *data,
+             ^
+        203.                      size_t data_length,
+        204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:218:9: Array access: Offset added: [20, 22] (⇐ [0, 2] + 20) Size: [0, +oo] by call to `TPM_DelegateSensitive_DecryptEncData` 
+        216.     /* load the parameter */
+        217.     if (rc == 0) {
+        218.         memcpy(data, *stream, data_length);
+                     ^
+        219.         *stream += data_length;
+        220.         *stream_size -= data_length;

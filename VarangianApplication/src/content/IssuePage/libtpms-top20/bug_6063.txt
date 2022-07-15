@@ -1,0 +1,155 @@
+#6063
+src/tpm12/tpm_daa.c:5131: error: Buffer Overrun L3
+  Offset added: [20, 122] (⇐ [0, 102] + 20) Size: [0, +oo] by call to `TPM_DAAJoin_Stage02`.
+
+src/tpm12/tpm_daa.c:4976:5: Call
+4974. 
+4975.     printf("TPM_Process_DAAJoin: Ordinal Entry\n");
+4976.     TPM_SizedBuffer_Init(&inputData0);	/* freed @1 */
+          ^
+4977.     TPM_SizedBuffer_Init(&inputData1);	/* freed @2 */
+4978.     TPM_SizedBuffer_Init(&outputData);	/* freed @3 */
+
+src/tpm12/tpm_sizedbuffer.c:56:5: Assignment
+  54. {
+  55.     tpm_sized_buffer->size = 0;
+  56.     tpm_sized_buffer->buffer = NULL;
+          ^
+  57.     return;
+  58. }
+
+src/tpm12/tpm_daa.c:5131:19: Call
+5129. 	    break;
+5130. 	  case 2 :
+5131. 	    returnCode = TPM_DAAJoin_Stage02(tpm_state,
+                        ^
+5132. 					     tpm_daa_session_data,
+5133. 					     &outputData, &inputData0, &inputData1);
+
+src/tpm12/tpm_daa.c:1531:1: Parameter `inputData0->buffer`
+  1529. }
+  1530. 
+  1531. TPM_RESULT TPM_DAAJoin_Stage02(tpm_state_t *tpm_state,
+        ^
+  1532. 			       TPM_DAA_SESSION_DATA *tpm_daa_session_data,
+  1533. 			       TPM_SIZED_BUFFER *outputData,
+
+src/tpm12/tpm_daa.c:1559:2: Assignment
+  1557.        present and return error TPM_DAA_INPUT_DATA0 if not. */
+  1558.     if (rc == 0) {
+  1559. 	stream = inputData0->buffer;
+         ^
+  1560. 	stream_size = inputData0->size;
+  1561. 	rc = TPM_DAAIssuer_Load(&(tpm_daa_session_data->DAA_issuerSettings), &stream, &stream_size);
+
+src/tpm12/tpm_daa.c:1561:7: Call
+  1559. 	stream = inputData0->buffer;
+  1560. 	stream_size = inputData0->size;
+  1561. 	rc = TPM_DAAIssuer_Load(&(tpm_daa_session_data->DAA_issuerSettings), &stream, &stream_size);
+              ^
+  1562. 	if (rc != 0) {
+  1563. 	    rc = TPM_DAA_INPUT_DATA0;
+
+src/tpm12/tpm_daa.c:580:1: Parameter `stream`
+    578. */
+    579. 
+    580. TPM_RESULT TPM_DAAIssuer_Load(TPM_DAA_ISSUER *tpm_daa_issuer,
+         ^
+    581. 			      unsigned char **stream,
+    582. 			      uint32_t *stream_size)
+
+src/tpm12/tpm_daa.c:589:7: Call
+    587.     /* check tag */
+    588.     if (rc == 0) {
+    589. 	rc = TPM_CheckTag(TPM_TAG_DAA_ISSUER, stream, stream_size);
+               ^
+    590.     }
+    591.     /* load DAA_digest_R0 */
+
+src/tpm12/tpm_load.c:291:1: Parameter `stream`
+      289. */
+      290. 
+      291. TPM_RESULT TPM_CheckTag(TPM_STRUCTURE_TAG expectedTag,
+           ^
+      292. 			unsigned char **stream,
+      293. 			uint32_t   *stream_size)
+
+src/tpm12/tpm_load.c:299:14: Call
+      297.                            
+      298.     if (rc == 0) {      
+      299.         rc = TPM_Load16(&tag, stream, stream_size);
+                        ^
+      300.     }
+      301.     if (rc == 0) {
+
+src/tpm12/tpm_load.c:122:1: Parameter `stream`
+        120. */
+        121. 
+        122. TPM_RESULT TPM_Load16(uint16_t *tpm_uint16,
+             ^
+        123.                       unsigned char **stream,
+        124.                       uint32_t *stream_size)
+
+src/tpm12/tpm_daa.c:613:7: Call
+    611.     /* load DAA_digest_gamma */
+    612.     if (rc == 0) {
+    613. 	rc = TPM_Digest_Load (tpm_daa_issuer->DAA_digest_gamma, stream, stream_size);
+               ^
+    614.     }
+    615.     /* load DAA_generic_q */
+
+src/tpm12/tpm_digest.c:65:1: Parameter `stream`
+      63. */
+      64. 
+      65. TPM_RESULT TPM_Digest_Load(TPM_DIGEST tpm_digest,
+          ^
+      66. 			   unsigned char **stream,
+      67. 			   uint32_t *stream_size)
+
+src/tpm12/tpm_digest.c:72:10: Call
+      70. 
+      71.     printf("  TPM_Digest_Load:\n");
+      72.     rc = TPM_Loadn(tpm_digest, TPM_DIGEST_SIZE, stream, stream_size);
+                   ^
+      73.     return rc;
+      74. }
+
+src/tpm12/tpm_load.c:202:1: <Offset trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `data_length`
+        200.    no endian adjustments. */
+        201. 
+        202. TPM_RESULT TPM_Loadn(BYTE *data,
+             ^
+        203.                      size_t data_length,
+        204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: <Length trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `stream`
+        200.    no endian adjustments. */
+        201. 
+        202. TPM_RESULT TPM_Loadn(BYTE *data,
+             ^
+        203.                      size_t data_length,
+        204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:218:9: Array access: Offset added: [20, 122] (⇐ [0, 102] + 20) Size: [0, +oo] by call to `TPM_DAAJoin_Stage02` 
+        216.     /* load the parameter */
+        217.     if (rc == 0) {
+        218.         memcpy(data, *stream, data_length);
+                     ^
+        219.         *stream += data_length;
+        220.         *stream_size -= data_length;

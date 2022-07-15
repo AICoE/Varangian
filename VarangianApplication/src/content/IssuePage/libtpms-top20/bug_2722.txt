@@ -1,0 +1,131 @@
+#2722
+src/tpm12/tpm_identity.c:1300: error: Buffer Overrun L3
+  Offset added: [20, +oo] (⇐ [0, +oo] + 20) Size: [0, +oo] by call to `TPM_AsymCaContents_Load`.
+
+src/tpm12/tpm_identity.c:1091:5: Assignment
+1089.     TPM_BOOL			idPCRStatus;
+1090.     TPM_DIGEST			h1Digest;		/* digest of public key in idKey */
+1091.     unsigned char		*b1Blob = NULL;		/* decrypted blob */
+          ^
+1092.     uint32_t			b1BlobLength = 0;	/* actual valid data */
+1093.     TPM_STRUCTURE_TAG		hTag;			/* b1 tag in host byte order */
+
+src/tpm12/tpm_identity.c:1282:2: Assignment
+1280.     /* 6. Determine the type and version of B1 */
+1281.     if (returnCode == TPM_SUCCESS) {
+1282. 	stream = b1Blob;		/* b1 must be preserved for the free */
+       ^
+1283. 	stream_size = b1BlobLength;
+1284. 	/* convert possible tag to uint16_t */
+
+src/tpm12/tpm_identity.c:1300:19: Call
+1298. 	    printf("TPM_Process_ActivateIdentity: b1 is TPM_ASYM_CA_CONTENTS\n");
+1299. 	    vers = 1;
+1300. 	    returnCode = TPM_AsymCaContents_Load(&b1AsymCaContents, &stream, &stream_size);
+                        ^
+1301. 	}
+1302.     }
+
+src/tpm12/tpm_identity.c:494:1: Parameter `stream`
+  492. */
+  493. 
+  494. TPM_RESULT TPM_AsymCaContents_Load(TPM_ASYM_CA_CONTENTS *tpm_asym_ca_contents,
+       ^
+  495. 				   unsigned char **stream,
+  496. 				   uint32_t *stream_size)
+
+src/tpm12/tpm_identity.c:502:7: Call
+  500.     printf(" TPM_AsymCaContents_Load:\n");
+  501.     if (rc == 0) {
+  502. 	rc = TPM_SymmetricKey_Load(&(tpm_asym_ca_contents->sessionKey), stream, stream_size);
+             ^
+  503.     }
+  504.     if (rc == 0) {
+
+src/tpm12/tpm_cryptoh.c:644:1: Parameter `stream`
+    642. */
+    643. 
+    644. TPM_RESULT TPM_SymmetricKey_Load(TPM_SYMMETRIC_KEY *tpm_symmetric_key,
+         ^
+    645. 				 unsigned char **stream,
+    646. 				 uint32_t *stream_size)
+
+src/tpm12/tpm_cryptoh.c:653:7: Call
+    651.     /* load algId */
+    652.     if (rc == 0) {
+    653. 	rc = TPM_Load32(&(tpm_symmetric_key->algId), stream, stream_size);
+               ^
+    654.     }
+    655.     /* load encScheme */
+
+src/tpm12/tpm_load.c:93:1: Parameter `stream`
+      91. */
+      92. 
+      93. TPM_RESULT TPM_Load32(uint32_t *tpm_uint32,
+          ^
+      94.                       unsigned char **stream,
+      95.                       uint32_t *stream_size)
+
+src/tpm12/tpm_identity.c:505:7: Call
+  503.     }
+  504.     if (rc == 0) {
+  505. 	rc = TPM_Digest_Load(tpm_asym_ca_contents->idDigest, stream, stream_size);
+             ^
+  506.     }
+  507.     return rc;
+
+src/tpm12/tpm_digest.c:65:1: Parameter `stream`
+    63. */
+    64. 
+    65. TPM_RESULT TPM_Digest_Load(TPM_DIGEST tpm_digest,
+        ^
+    66. 			   unsigned char **stream,
+    67. 			   uint32_t *stream_size)
+
+src/tpm12/tpm_digest.c:72:10: Call
+    70. 
+    71.     printf("  TPM_Digest_Load:\n");
+    72.     rc = TPM_Loadn(tpm_digest, TPM_DIGEST_SIZE, stream, stream_size);
+                 ^
+    73.     return rc;
+    74. }
+
+src/tpm12/tpm_load.c:202:1: <Offset trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `data_length`
+      200.    no endian adjustments. */
+      201. 
+      202. TPM_RESULT TPM_Loadn(BYTE *data,
+           ^
+      203.                      size_t data_length,
+      204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: <Length trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `stream`
+      200.    no endian adjustments. */
+      201. 
+      202. TPM_RESULT TPM_Loadn(BYTE *data,
+           ^
+      203.                      size_t data_length,
+      204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:218:9: Array access: Offset added: [20, +oo] (⇐ [0, +oo] + 20) Size: [0, +oo] by call to `TPM_AsymCaContents_Load` 
+      216.     /* load the parameter */
+      217.     if (rc == 0) {
+      218.         memcpy(data, *stream, data_length);
+                   ^
+      219.         *stream += data_length;
+      220.         *stream_size -= data_length;

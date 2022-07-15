@@ -1,0 +1,171 @@
+#3207
+src/tpm12/tpm_transport.c:1531: error: Buffer Overrun L3
+  Offset added: [20, 22] (⇐ [0, 2] + 20) Size: [0, +oo] by call to `TPM_TransportAuth_DecryptSecret`.
+
+src/tpm12/tpm_transport.c:1531:16: Call
+1529. 	    /* e. Validate K1 for tag */
+1530. 	    if (returnCode == TPM_SUCCESS) {
+1531. 		returnCode = TPM_TransportAuth_DecryptSecret(&k1TransportAuth,
+                     ^
+1532. 							     &secret,
+1533. 							     encKey);
+
+src/tpm12/tpm_transport.c:1251:1: Parameter `tpm_key->pubKey.size`
+  1249. */
+  1250. 
+  1251. TPM_RESULT TPM_TransportAuth_DecryptSecret(TPM_TRANSPORT_AUTH *tpm_transport_auth,	/* result */
+        ^
+  1252. 					   TPM_SIZED_BUFFER *secret,	/* encrypted input */
+  1253. 					   TPM_KEY *tpm_key)		/* key for decrypting */
+
+src/tpm12/tpm_transport.c:1264:7: Call
+  1262.     /* allocate space for the decrypted data */
+  1263.     if (rc == 0) {
+  1264. 	rc = TPM_RSAPrivateDecryptMalloc(&decryptData,		/* decrypted data */
+              ^
+  1265. 					 &decryptDataLength,	/* actual size of decrypted data */
+  1266. 					 secret->buffer,	/* encrypted data */
+
+src/tpm12/tpm_cryptoh.c:1551:1: Parameter `decrypt_data`
+    1549. */
+    1550. 
+    1551. TPM_RESULT TPM_RSAPrivateDecryptMalloc(unsigned char **decrypt_data,	/* decrypted data */
+          ^
+    1552. 				       uint32_t *decrypt_data_length,	/* length of data put into
+    1553. 									   decrypt_data */
+
+src/tpm12/tpm_cryptoh.c:1564:7: Call
+    1562. 	   tpm_key->pubKey.size);
+    1563.     if (rc == 0) {
+    1564. 	rc = TPM_Malloc(decrypt_data, tpm_key->pubKey.size);
+                ^
+    1565.     }
+    1566.     if (rc == 0) {
+
+src/tpm_memory.c:51:1: Parameter `buffer`
+      49.  */
+      50. 
+      51. TPM_RESULT TPM_Malloc(unsigned char **buffer, uint32_t size)
+          ^
+      52. {
+      53.     TPM_RESULT          rc = 0;
+
+src/tpm12/tpm_transport.c:1273:2: Assignment
+  1271.     if (rc == 0) {
+  1272. 	/* use temporary variables, because TPM_TransportAuth_Load() moves the stream */
+  1273. 	stream = decryptData;
+         ^
+  1274. 	stream_size = decryptDataLength;
+  1275. 	rc = TPM_TransportAuth_Load(tpm_transport_auth, &stream, &stream_size);
+
+src/tpm12/tpm_transport.c:1275:7: Call
+  1273. 	stream = decryptData;
+  1274. 	stream_size = decryptDataLength;
+  1275. 	rc = TPM_TransportAuth_Load(tpm_transport_auth, &stream, &stream_size);
+              ^
+  1276.     }
+  1277.     free(decryptData);		/* @1 */
+
+src/tpm12/tpm_transport.c:1188:1: Parameter `stream`
+    1186. */
+    1187. 
+    1188. TPM_RESULT TPM_TransportAuth_Load(TPM_TRANSPORT_AUTH *tpm_transport_auth,
+          ^
+    1189. 				  unsigned char **stream,
+    1190. 				  uint32_t *stream_size)
+
+src/tpm12/tpm_transport.c:1197:7: Call
+    1195.     /* check tag */
+    1196.     if (rc == 0) {
+    1197. 	rc = TPM_CheckTag(TPM_TAG_TRANSPORT_AUTH, stream, stream_size);
+                ^
+    1198.     }
+    1199.     /* load authData */
+
+src/tpm12/tpm_load.c:291:1: Parameter `stream`
+      289. */
+      290. 
+      291. TPM_RESULT TPM_CheckTag(TPM_STRUCTURE_TAG expectedTag,
+           ^
+      292. 			unsigned char **stream,
+      293. 			uint32_t   *stream_size)
+
+src/tpm12/tpm_load.c:299:14: Call
+      297.                            
+      298.     if (rc == 0) {      
+      299.         rc = TPM_Load16(&tag, stream, stream_size);
+                        ^
+      300.     }
+      301.     if (rc == 0) {
+
+src/tpm12/tpm_load.c:122:1: Parameter `stream`
+        120. */
+        121. 
+        122. TPM_RESULT TPM_Load16(uint16_t *tpm_uint16,
+             ^
+        123.                       unsigned char **stream,
+        124.                       uint32_t *stream_size)
+
+src/tpm12/tpm_transport.c:1201:7: Call
+    1199.     /* load authData */
+    1200.     if (rc == 0) {
+    1201. 	rc = TPM_Secret_Load(tpm_transport_auth->authData, stream, stream_size);
+                ^
+    1202.     }
+    1203.     return rc;
+
+src/tpm12/tpm_secret.c:66:1: Parameter `stream`
+      64. */
+      65. 
+      66. TPM_RESULT TPM_Secret_Load(TPM_SECRET tpm_secret,
+          ^
+      67.                            unsigned char **stream,
+      68.                            uint32_t *stream_size)
+
+src/tpm12/tpm_secret.c:73:10: Call
+      71. 
+      72.     printf("  TPM_Secret_Load:\n");
+      73.     rc = TPM_Loadn(tpm_secret, TPM_SECRET_SIZE, stream, stream_size);
+                   ^
+      74.     return rc;
+      75. }
+
+src/tpm12/tpm_load.c:202:1: <Offset trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `data_length`
+        200.    no endian adjustments. */
+        201. 
+        202. TPM_RESULT TPM_Loadn(BYTE *data,
+             ^
+        203.                      size_t data_length,
+        204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: <Length trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `stream`
+        200.    no endian adjustments. */
+        201. 
+        202. TPM_RESULT TPM_Loadn(BYTE *data,
+             ^
+        203.                      size_t data_length,
+        204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:218:9: Array access: Offset added: [20, 22] (⇐ [0, 2] + 20) Size: [0, +oo] by call to `TPM_TransportAuth_DecryptSecret` 
+        216.     /* load the parameter */
+        217.     if (rc == 0) {
+        218.         memcpy(data, *stream, data_length);
+                     ^
+        219.         *stream += data_length;
+        220.         *stream_size -= data_length;

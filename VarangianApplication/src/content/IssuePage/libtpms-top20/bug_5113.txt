@@ -1,0 +1,219 @@
+#5113
+src/tpm12/tpm_delegate.c:3493: error: Buffer Overrun L3
+  Offset: [0, 6] (⇐ [0, 5] + [0, 1]) Size: [0, +oo] by call to `TPM_DelegateOwnerBlob_Load`.
+
+src/tpm12/tpm_delegate.c:3388:15: Call
+3386.     /* get inputData parameter */
+3387.     if (returnCode == TPM_SUCCESS) {
+3388. 	returnCode = TPM_SizedBuffer_Load(&inputData, &command, &paramSize);
+                    ^
+3389.     }
+3390.     /* save the ending point of inParam's for authorization and auditing */
+
+src/tpm12/tpm_sizedbuffer.c:75:1: Parameter `tpm_sized_buffer->buffer`
+  73. */
+  74. 
+  75. TPM_RESULT TPM_SizedBuffer_Load(TPM_SIZED_BUFFER *tpm_sized_buffer,     /* result */
+      ^
+  76.                                 unsigned char **stream,		/* pointer to next parameter */
+  77.                                 uint32_t *stream_size)		/* stream size left */
+
+src/tpm12/tpm_delegate.c:3477:2: Assignment
+3475.     if (returnCode == TPM_SUCCESS) {
+3476. 	/* use a temporary copy so the original values are not moved */
+3477. 	stream = inputData.buffer;
+       ^
+3478. 	stream_size = inputData.size;
+3479. 	/* if inputData is a table index */
+
+src/tpm12/tpm_delegate.c:3493:16: Call
+3491. 	    switch (d1Tag) {
+3492. 	      case TPM_TAG_DELEGATE_OWNER_BLOB:
+3493. 		returnCode = TPM_DelegateOwnerBlob_Load(&d1DelegateOwnerBlob,
+                     ^
+3494. 							&stream, &stream_size);
+3495. 		familyID = d1DelegateOwnerBlob.pub.familyID;
+
+src/tpm12/tpm_delegate.c:685:1: Parameter `stream`
+  683. */
+  684. 
+  685. TPM_RESULT TPM_DelegateOwnerBlob_Load(TPM_DELEGATE_OWNER_BLOB *tpm_delegate_owner_blob,
+       ^
+  686. 				      unsigned char **stream,
+  687. 				      uint32_t *stream_size)
+
+src/tpm12/tpm_delegate.c:694:7: Call
+  692.     /* check tag */
+  693.     if (rc == 0) {
+  694. 	rc = TPM_CheckTag(TPM_TAG_DELEGATE_OWNER_BLOB, stream, stream_size);
+             ^
+  695.     }
+  696.     /* load pub */
+
+src/tpm12/tpm_load.c:291:1: Parameter `stream`
+    289. */
+    290. 
+    291. TPM_RESULT TPM_CheckTag(TPM_STRUCTURE_TAG expectedTag,
+         ^
+    292. 			unsigned char **stream,
+    293. 			uint32_t   *stream_size)
+
+src/tpm12/tpm_load.c:299:14: Call
+    297.                            
+    298.     if (rc == 0) {      
+    299.         rc = TPM_Load16(&tag, stream, stream_size);
+                      ^
+    300.     }
+    301.     if (rc == 0) {
+
+src/tpm12/tpm_load.c:122:1: Parameter `stream`
+      120. */
+      121. 
+      122. TPM_RESULT TPM_Load16(uint16_t *tpm_uint16,
+           ^
+      123.                       unsigned char **stream,
+      124.                       uint32_t *stream_size)
+
+src/tpm12/tpm_delegate.c:698:7: Call
+  696.     /* load pub */
+  697.     if (rc == 0) {
+  698. 	rc = TPM_DelegatePublic_Load(&(tpm_delegate_owner_blob->pub), stream, stream_size);
+             ^
+  699.     }
+  700.     /* check that permissions are owner */
+
+src/tpm12/tpm_delegate.c:88:1: Parameter `stream`
+    86. */
+    87. 
+    88. TPM_RESULT TPM_DelegatePublic_Load(TPM_DELEGATE_PUBLIC *tpm_delegate_public,
+        ^
+    89. 				   unsigned char **stream,
+    90. 				   uint32_t *stream_size)
+
+src/tpm12/tpm_delegate.c:97:7: Call
+    95.     /* check the tag */
+    96.     if (rc == 0) {
+    97. 	rc = TPM_CheckTag(TPM_TAG_DELEGATE_PUBLIC, stream, stream_size);
+              ^
+    98.     }
+    99.     /* load rowLabel */
+
+src/tpm12/tpm_load.c:291:1: Parameter `stream`
+      289. */
+      290. 
+      291. TPM_RESULT TPM_CheckTag(TPM_STRUCTURE_TAG expectedTag,
+           ^
+      292. 			unsigned char **stream,
+      293. 			uint32_t   *stream_size)
+
+src/tpm12/tpm_load.c:299:14: Call
+      297.                            
+      298.     if (rc == 0) {      
+      299.         rc = TPM_Load16(&tag, stream, stream_size);
+                        ^
+      300.     }
+      301.     if (rc == 0) {
+
+src/tpm12/tpm_load.c:122:1: Parameter `stream`
+        120. */
+        121. 
+        122. TPM_RESULT TPM_Load16(uint16_t *tpm_uint16,
+             ^
+        123.                       unsigned char **stream,
+        124.                       uint32_t *stream_size)
+
+src/tpm12/tpm_delegate.c:105:7: Call
+    103.     /* load pcrInfo */
+    104.     if (rc == 0) {
+    105. 	rc = TPM_PCRInfoShort_Load(&(tpm_delegate_public->pcrInfo), stream, stream_size, FALSE);
+               ^
+    106.     }
+    107.     /* load permissions */
+
+src/tpm12/tpm_pcr.c:718:1: Parameter `stream`
+      716. */
+      717. 
+      718. TPM_RESULT TPM_PCRInfoShort_Load(TPM_PCR_INFO_SHORT *tpm_pcr_info_short,
+           ^
+      719. 				 unsigned char **stream,
+      720. 				 uint32_t *stream_size,
+
+src/tpm12/tpm_pcr.c:729:7: Call
+      727.     /* load pcrSelection */
+      728.     if (rc == 0) {
+      729. 	rc = TPM_PCRSelection_Load(&(tpm_pcr_info_short->pcrSelection), stream, stream_size);
+                 ^
+      730.     }
+      731.     /* load the localityAtRelease */
+
+src/tpm12/tpm_pcr.c:2039:1: Parameter `stream`
+        2037. */
+        2038. 
+        2039. TPM_RESULT TPM_PCRSelection_Load(TPM_PCR_SELECTION *tpm_pcr_selection,
+              ^
+        2040. 				 unsigned char **stream,
+        2041. 				 uint32_t *stream_size)
+
+src/tpm12/tpm_pcr.c:2049:7: Call
+        2047.     /* load sizeOfSelect */
+        2048.     if (rc == 0) {
+        2049. 	rc = TPM_Load16(&(tpm_pcr_selection->sizeOfSelect), stream, stream_size);
+                    ^
+        2050.     }
+        2051.     /* test sizeOfSelect value */
+
+src/tpm12/tpm_load.c:122:1: Parameter `stream`
+          120. */
+          121. 
+          122. TPM_RESULT TPM_Load16(uint16_t *tpm_uint16,
+               ^
+          123.                       unsigned char **stream,
+          124.                       uint32_t *stream_size)
+
+src/tpm12/tpm_load.c:138:23: Call
+          136.     /* load the parameter */
+          137.     if (rc == 0) {
+          138.         *tpm_uint16 = LOAD16(*stream, 0);
+                                     ^
+          139.         *stream += sizeof (uint16_t);
+          140.         *stream_size -= sizeof (uint16_t);
+
+src/tpm12/tpm_load.c:67:1: <Offset trace>
+65. }
+66. 
+67. uint16_t LOAD16(const unsigned char *buffer, unsigned int offset)
+    ^
+68. {
+69.     unsigned int i;
+
+src/tpm12/tpm_load.c:67:1: Parameter `offset`
+            65. }
+            66. 
+            67. uint16_t LOAD16(const unsigned char *buffer, unsigned int offset)
+                ^
+            68. {
+            69.     unsigned int i;
+
+src/tpm12/tpm_load.c:67:1: <Length trace>
+65. }
+66. 
+67. uint16_t LOAD16(const unsigned char *buffer, unsigned int offset)
+    ^
+68. {
+69.     unsigned int i;
+
+src/tpm12/tpm_load.c:67:1: Parameter `buffer`
+            65. }
+            66. 
+            67. uint16_t LOAD16(const unsigned char *buffer, unsigned int offset)
+                ^
+            68. {
+            69.     unsigned int i;
+
+src/tpm12/tpm_load.c:74:12: Array access: Offset: [0, 6] (⇐ [0, 5] + [0, 1]) Size: [0, +oo] by call to `TPM_DelegateOwnerBlob_Load` 
+            72.     for (i = 0 ; i < 2 ; i++) {
+            73. 	result <<= 8;
+            74. 	result |= buffer[offset + i];
+                           ^
+            75.     }
+            76.     return result;

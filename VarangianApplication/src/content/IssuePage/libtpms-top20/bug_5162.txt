@@ -1,0 +1,163 @@
+#5162
+src/tpm12/tpm_process.c:3488: error: Buffer Overrun L3
+  Offset added: [1, +oo] (⇐ [0, 12] + [1, +oo]) Size: [0, +oo] by call to `TPM_GetCapabilityCommon`.
+
+src/tpm12/tpm_process.c:3395:5: Call
+3393.     
+3394.     printf("TPM_Process_GetCapability: Ordinal Entry\n");
+3395.     TPM_SizedBuffer_Init(&subCap);		/* freed @1 */
+          ^
+3396.     TPM_Sbuffer_Init(&capabilityResponse);	/* freed @2 */
+3397.     /*
+
+src/tpm12/tpm_sizedbuffer.c:56:5: Assignment
+  54. {
+  55.     tpm_sized_buffer->size = 0;
+  56.     tpm_sized_buffer->buffer = NULL;
+          ^
+  57.     return;
+  58. }
+
+src/tpm12/tpm_process.c:3488:15: Call
+3486. 	printf("TPM_Process_GetCapability: capArea %08x subCap32 subCap16 %08x %04x\n",
+3487. 	       capArea, subCap32, subCap16);
+3488. 	returnCode = TPM_GetCapabilityCommon(&capabilityResponse, tpm_state,
+                    ^
+3489. 					     capArea, subCap16, subCap32, &subCap);
+3490.     }
+
+src/tpm12/tpm_process.c:3571:1: Parameter `subCap->buffer`
+  3569. */
+  3570. 
+  3571. TPM_RESULT TPM_GetCapabilityCommon(TPM_STORE_BUFFER *capabilityResponse,
+        ^
+  3572. 				   tpm_state_t *tpm_state, 
+  3573. 				   TPM_CAPABILITY_AREA capArea, 
+
+src/tpm12/tpm_process.c:3638:7: Call
+  3636. 	break;
+  3637.       case TPM_CAP_CHECK_LOADED: 
+  3638. 	rc = TPM_GetCapability_CapCheckLoaded(capabilityResponse,
+              ^
+  3639. 					      tpm_state->tpm_key_handle_entries,
+  3640. 					      subCap);
+
+src/tpm12/tpm_process.c:4100:1: Parameter `subCap->buffer`
+    4098. */
+    4099. 
+    4100. static TPM_RESULT TPM_GetCapability_CapCheckLoaded(TPM_STORE_BUFFER *capabilityResponse,
+          ^
+    4101. 						   const TPM_KEY_HANDLE_ENTRY *tpm_key_handle_entry,
+    4102. 						   TPM_SIZED_BUFFER *subCap)
+
+src/tpm12/tpm_process.c:4114:2: Assignment
+    4112.     if (rc == 0) {
+    4113. 	/* make temporary copies so the subCap is not touched */
+    4114. 	stream = subCap->buffer;
+           ^
+    4115. 	stream_size = subCap->size;
+    4116. 	rc = TPM_KeyParms_Load(&keyParms, &stream, &stream_size);
+
+src/tpm12/tpm_process.c:4116:7: Call
+    4114. 	stream = subCap->buffer;
+    4115. 	stream_size = subCap->size;
+    4116. 	rc = TPM_KeyParms_Load(&keyParms, &stream, &stream_size);
+                ^
+    4117.     }
+    4118.     if (rc == 0) {
+
+src/tpm12/tpm_key.c:1546:1: Parameter `stream`
+      1544. */
+      1545. 
+      1546. TPM_RESULT TPM_KeyParms_Load(TPM_KEY_PARMS *tpm_key_parms,	/* result */
+            ^
+      1547. 			     unsigned char **stream,		/* pointer to next parameter */
+      1548. 			     uint32_t *stream_size)		/* stream size left */
+
+src/tpm12/tpm_key.c:1557:7: Call
+      1555.     /* load algorithmID */
+      1556.     if (rc == 0) {
+      1557. 	rc = TPM_Load32(&(tpm_key_parms->algorithmID), stream, stream_size);
+                  ^
+      1558.     }
+      1559.     /* load encScheme */
+
+src/tpm12/tpm_load.c:93:1: Parameter `stream`
+        91. */
+        92. 
+        93. TPM_RESULT TPM_Load32(uint32_t *tpm_uint32,
+            ^
+        94.                       unsigned char **stream,
+        95.                       uint32_t *stream_size)
+
+src/tpm12/tpm_key.c:1569:7: Call
+      1567.     /* load parmSize and parms */
+      1568.     if (rc == 0) {
+      1569. 	rc = TPM_SizedBuffer_Load(&(tpm_key_parms->parms), stream, stream_size);
+                  ^
+      1570.     }
+      1571.     if (rc == 0) {
+
+src/tpm12/tpm_sizedbuffer.c:83:14: Call
+        81.     printf("  TPM_SizedBuffer_Load:\n");
+        82.     if (rc == 0) {
+        83.         rc = TPM_Load32(&(tpm_sized_buffer->size), stream, stream_size);
+                         ^
+        84.     }
+        85.     /* if the size is not 0 */
+
+src/tpm12/tpm_load.c:93:1: Parameter `tpm_uint32`
+          91. */
+          92. 
+          93. TPM_RESULT TPM_Load32(uint32_t *tpm_uint32,
+              ^
+          94.                       unsigned char **stream,
+          95.                       uint32_t *stream_size)
+
+src/tpm12/tpm_sizedbuffer.c:93:18: Call
+        91.         /* copy the buffer */
+        92.         if (rc == 0) {
+        93.             rc = TPM_Loadn(tpm_sized_buffer->buffer, tpm_sized_buffer->size, stream, stream_size);
+                             ^
+        94.         }
+        95.     }
+
+src/tpm12/tpm_load.c:202:1: <Offset trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `data_length`
+          200.    no endian adjustments. */
+          201. 
+          202. TPM_RESULT TPM_Loadn(BYTE *data,
+               ^
+          203.                      size_t data_length,
+          204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: <Length trace>
+200.    no endian adjustments. */
+201. 
+202. TPM_RESULT TPM_Loadn(BYTE *data,
+     ^
+203.                      size_t data_length,
+204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:202:1: Parameter `stream`
+          200.    no endian adjustments. */
+          201. 
+          202. TPM_RESULT TPM_Loadn(BYTE *data,
+               ^
+          203.                      size_t data_length,
+          204.                      unsigned char **stream,
+
+src/tpm12/tpm_load.c:218:9: Array access: Offset added: [1, +oo] (⇐ [0, 12] + [1, +oo]) Size: [0, +oo] by call to `TPM_GetCapabilityCommon` 
+          216.     /* load the parameter */
+          217.     if (rc == 0) {
+          218.         memcpy(data, *stream, data_length);
+                       ^
+          219.         *stream += data_length;
+          220.         *stream_size -= data_length;

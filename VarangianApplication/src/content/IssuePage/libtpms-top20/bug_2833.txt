@@ -1,0 +1,243 @@
+#2833
+src/tpm12/tpm_permanent.c:1125: error: Buffer Overrun L3
+  Offset: [0, 116] (⇐ [0, 113] + [0, 3]) Size: [0, +oo] by call to `TPM_PermanentAll_Load`.
+
+src/tpm12/tpm_permanent.c:1117:7: Call
+1115. 	/* try loading from NVRAM */
+1116. 	/* Returns TPM_RETRY on non-existent file */
+1117. 	rc = TPM_NVRAM_LoadData(&stream,		/* freed @1 */
+            ^
+1118. 				&stream_size,
+1119. 				tpm_state->tpm_number,
+
+src/tpm_nvfile.c:189:5: Assignment
+  187. 
+  188.     printf(" TPM_NVRAM_LoadData: From file %s\n", name);
+  189.     *data = NULL;
+           ^
+  190.     *length = 0;
+  191.     /* open the file */
+
+src/tpm12/tpm_permanent.c:1125:7: Call
+1123.     if (rc == 0) {
+1124. 	stream_start = stream;			/* save starting point for free() */
+1125. 	rc = TPM_PermanentAll_Load(tpm_state, &stream, &stream_size);
+            ^
+1126. 	if (rc != 0) {
+1127. 	    printf("TPM_PermanentAll_NVLoad: Error (fatal) loading deserializing NV state\n");
+
+src/tpm12/tpm_permanent.c:969:1: Parameter `stream`
+  967. */
+  968. 
+  969. TPM_RESULT TPM_PermanentAll_Load(tpm_state_t *tpm_state,
+       ^
+  970. 				 unsigned char **stream,
+  971. 				 uint32_t *stream_size)
+
+src/tpm12/tpm_permanent.c:982:7: Call
+  980.        on the tag */
+  981.     if (rc == 0) {
+  982. 	rc = TPM_CheckTag(TPM_TAG_NVSTATE_V1, stream, stream_size);
+             ^
+  983.     }
+  984.     /* TPM_PERMANENT_DATA deserialize from stream */
+
+src/tpm12/tpm_load.c:291:1: Parameter `stream`
+    289. */
+    290. 
+    291. TPM_RESULT TPM_CheckTag(TPM_STRUCTURE_TAG expectedTag,
+         ^
+    292. 			unsigned char **stream,
+    293. 			uint32_t   *stream_size)
+
+src/tpm12/tpm_load.c:299:14: Call
+    297.                            
+    298.     if (rc == 0) {      
+    299.         rc = TPM_Load16(&tag, stream, stream_size);
+                      ^
+    300.     }
+    301.     if (rc == 0) {
+
+src/tpm12/tpm_load.c:122:1: Parameter `stream`
+      120. */
+      121. 
+      122. TPM_RESULT TPM_Load16(uint16_t *tpm_uint16,
+           ^
+      123.                       unsigned char **stream,
+      124.                       uint32_t *stream_size)
+
+src/tpm12/tpm_permanent.c:986:7: Call
+  984.     /* TPM_PERMANENT_DATA deserialize from stream */
+  985.     if (rc == 0) {
+  986. 	rc = TPM_PermanentData_Load(&(tpm_state->tpm_permanent_data),
+             ^
+  987. 				    stream, stream_size, TRUE);
+  988.     }
+
+src/tpm12/tpm_permanent.c:579:1: Parameter `stream`
+    577. */
+    578. 
+    579. TPM_RESULT TPM_PermanentData_Load(TPM_PERMANENT_DATA *tpm_permanent_data,
+         ^
+    580. 				  unsigned char **stream,
+    581. 				  uint32_t *stream_size,
+
+src/tpm12/tpm_permanent.c:592:7: Call
+    590.     /* check tag */
+    591.     if (rc == 0) {
+    592. 	rc = TPM_CheckTag(TPM_TAG_PERMANENT_DATA, stream, stream_size);
+               ^
+    593.     }
+    594.     /* load revMajor */
+
+src/tpm12/tpm_load.c:291:1: Parameter `stream`
+      289. */
+      290. 
+      291. TPM_RESULT TPM_CheckTag(TPM_STRUCTURE_TAG expectedTag,
+           ^
+      292. 			unsigned char **stream,
+      293. 			uint32_t   *stream_size)
+
+src/tpm12/tpm_load.c:299:14: Call
+      297.                            
+      298.     if (rc == 0) {      
+      299.         rc = TPM_Load16(&tag, stream, stream_size);
+                        ^
+      300.     }
+      301.     if (rc == 0) {
+
+src/tpm12/tpm_load.c:122:1: Parameter `stream`
+        120. */
+        121. 
+        122. TPM_RESULT TPM_Load16(uint16_t *tpm_uint16,
+             ^
+        123.                       unsigned char **stream,
+        124.                       uint32_t *stream_size)
+
+src/tpm12/tpm_permanent.c:638:7: Call
+    636.     if (rc == 0) {
+    637. 	printf("  TPM_PermanentData_Load: Load manuMaintPub\n");
+    638. 	rc = TPM_Pubkey_Load(&(tpm_permanent_data->manuMaintPub), stream, stream_size);
+               ^
+    639.     }
+    640. #else
+
+src/tpm12/tpm_key.c:2721:1: Parameter `stream`
+      2719. }
+      2720. 
+      2721. TPM_RESULT TPM_Pubkey_Load(TPM_PUBKEY *tpm_pubkey,	/* result */
+            ^
+      2722. 			   unsigned char **stream,	/* pointer to next parameter */
+      2723. 			   uint32_t *stream_size)		/* stream size left */
+
+src/tpm12/tpm_key.c:2730:7: Call
+      2728.     /* load algorithmParms */
+      2729.     if (rc == 0) {
+      2730. 	rc = TPM_KeyParms_Load(&(tpm_pubkey->algorithmParms), stream, stream_size);
+                  ^
+      2731.     }
+      2732.     /* load pubKey */
+
+src/tpm12/tpm_key.c:1546:1: Parameter `stream`
+        1544. */
+        1545. 
+        1546. TPM_RESULT TPM_KeyParms_Load(TPM_KEY_PARMS *tpm_key_parms,	/* result */
+              ^
+        1547. 			     unsigned char **stream,		/* pointer to next parameter */
+        1548. 			     uint32_t *stream_size)		/* stream size left */
+
+src/tpm12/tpm_key.c:1557:7: Call
+        1555.     /* load algorithmID */
+        1556.     if (rc == 0) {
+        1557. 	rc = TPM_Load32(&(tpm_key_parms->algorithmID), stream, stream_size);
+                    ^
+        1558.     }
+        1559.     /* load encScheme */
+
+src/tpm12/tpm_load.c:93:1: Parameter `stream`
+          91. */
+          92. 
+          93. TPM_RESULT TPM_Load32(uint32_t *tpm_uint32,
+              ^
+          94.                       unsigned char **stream,
+          95.                       uint32_t *stream_size)
+
+src/tpm12/tpm_key.c:1569:7: Call
+        1567.     /* load parmSize and parms */
+        1568.     if (rc == 0) {
+        1569. 	rc = TPM_SizedBuffer_Load(&(tpm_key_parms->parms), stream, stream_size);
+                    ^
+        1570.     }
+        1571.     if (rc == 0) {
+
+src/tpm12/tpm_sizedbuffer.c:75:1: Parameter `stream`
+          73. */
+          74. 
+          75. TPM_RESULT TPM_SizedBuffer_Load(TPM_SIZED_BUFFER *tpm_sized_buffer,     /* result */
+              ^
+          76.                                 unsigned char **stream,		/* pointer to next parameter */
+          77.                                 uint32_t *stream_size)		/* stream size left */
+
+src/tpm12/tpm_sizedbuffer.c:83:14: Call
+          81.     printf("  TPM_SizedBuffer_Load:\n");
+          82.     if (rc == 0) {
+          83.         rc = TPM_Load32(&(tpm_sized_buffer->size), stream, stream_size);
+                           ^
+          84.     }
+          85.     /* if the size is not 0 */
+
+src/tpm12/tpm_load.c:93:1: Parameter `stream`
+            91. */
+            92. 
+            93. TPM_RESULT TPM_Load32(uint32_t *tpm_uint32,
+                ^
+            94.                       unsigned char **stream,
+            95.                       uint32_t *stream_size)
+
+src/tpm12/tpm_load.c:109:23: Call
+            107.     /* load the parameter */
+            108.     if (rc == 0) {
+            109.         *tpm_uint32 = LOAD32(*stream, 0);
+                                       ^
+            110.         *stream += sizeof (uint32_t);
+            111.         *stream_size -= sizeof (uint32_t);
+
+src/tpm12/tpm_load.c:55:1: <Offset trace>
+53. /* The LOADn() functions convert a big endian stream to integer types */
+54. 
+55. uint32_t LOAD32(const unsigned char *buffer, unsigned int offset)
+    ^
+56. {
+57.     unsigned int i;
+
+src/tpm12/tpm_load.c:55:1: Parameter `offset`
+              53. /* The LOADn() functions convert a big endian stream to integer types */
+              54. 
+              55. uint32_t LOAD32(const unsigned char *buffer, unsigned int offset)
+                  ^
+              56. {
+              57.     unsigned int i;
+
+src/tpm12/tpm_load.c:55:1: <Length trace>
+53. /* The LOADn() functions convert a big endian stream to integer types */
+54. 
+55. uint32_t LOAD32(const unsigned char *buffer, unsigned int offset)
+    ^
+56. {
+57.     unsigned int i;
+
+src/tpm12/tpm_load.c:55:1: Parameter `buffer`
+              53. /* The LOADn() functions convert a big endian stream to integer types */
+              54. 
+              55. uint32_t LOAD32(const unsigned char *buffer, unsigned int offset)
+                  ^
+              56. {
+              57.     unsigned int i;
+
+src/tpm12/tpm_load.c:62:12: Array access: Offset: [0, 116] (⇐ [0, 113] + [0, 3]) Size: [0, +oo] by call to `TPM_PermanentAll_Load` 
+              60.     for (i = 0 ; i < 4 ; i++) {
+              61. 	result <<= 8;
+              62. 	result |= buffer[offset + i];
+                             ^
+              63.     }
+              64.     return result;
